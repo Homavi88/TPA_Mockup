@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPA — Макет для презентации</title>
+  <style>
+    /* ============ ВНЕШНИЙ КАРОКАС СЛАЙДОВ (по DESIGN.md) ============ */
+    :root {
+      --canvas: #fdfcfc;
+      --ink: #201d1d;
+      --ink-deep: #0f0000;
+      --charcoal: #302c2c;
+      --body-c: #424245;
+      --mute: #646262;
+      --stone: #6e6e73;
+      --ash: #9a9898;
+      --hairline: rgba(15,0,0,0.12);
+      --hairline-strong: #646262;
+      --surface-soft: #f8f7f7;
+      --surface-card: #f1eeee;
+      --surface-dark: #201d1d;
+      --surface-dark-elevated: #302c2c;
+      --r-sm: 4px;
+      --font-mono: "Berkeley Mono", "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; overflow-x: hidden; }
+    body {
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .hidden { display: none !important; }
+
+    /* primary-nav: ASCII-вордмарк, ссылки-вкладки, DEMO-бейдж */
+    .pnav {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; align-items: center; gap: 16px;
+      height: 56px; padding: 0 24px;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--hairline);
+    }
+    .wordmark { margin: 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.1; font-weight: 700; color: var(--ink); }
+    .pnav-sub { font-size: 14px; line-height: 2; color: var(--stone); white-space: nowrap; }
+    .pnav-links { margin-left: auto; display: flex; }
+    .nav-tab {
+      background: transparent;
+      border: none; border-bottom: 2px solid transparent;
+      color: var(--mute);
+      font-family: var(--font-mono); font-size: 16px; font-weight: 500; line-height: 2;
+      padding: 8px 16px; cursor: pointer;
+    }
+    .nav-tab:hover { color: var(--charcoal); }
+    .nav-tab.active { color: var(--ink); border-bottom-color: var(--ash); }
+    .demo-badge {
+      background: var(--surface-dark); color: var(--canvas);
+      font-size: 14px; line-height: 2; padding: 2px 8px; border-radius: var(--r-sm);
+      white-space: nowrap; margin-left: 8px;
+    }
+
+    /* слайд: секция с hairline-ритмом 96px */
+    .stage { max-width: 1100px; margin: 0 auto; padding: 96px 24px 24px; }
+    .hero { margin-bottom: 24px; }
+    .hero-title { margin: 0 0 8px; font-size: 38px; font-weight: 700; line-height: 1.5; letter-spacing: 0; color: var(--ink); }
+    .hero-sub { margin: 0; font-size: 16px; font-weight: 400; line-height: 1.5; color: var(--body-c); max-width: 760px; }
+    .sec-label { font-size: 16px; font-weight: 700; line-height: 1.5; color: var(--ink); }
+    .sec-sub { font-size: 14px; line-height: 2; color: var(--mute); }
+    .rule { border: none; border-top: 1px solid var(--hairline); margin: 16px 0 24px; }
+
+    /* тёмная поверхность — единственный «поднятый» элемент (hero-tui-mockup) */
+    .app-frame { background: var(--surface-dark); }
+    .frame-hints {
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      padding: 8px 12px;
+      background: var(--surface-dark-elevated);
+      color: var(--ash);
+      font-size: 14px; line-height: 2;
+      font-family: var(--font-mono);
+    }
+    .fig-caption { font-size: 14px; line-height: 2; color: var(--mute); margin-top: 16px; }
+
+    .pfoot {
+      max-width: 1100px; margin: 0 auto;
+      padding: 16px 24px 32px;
+      border-top: 1px solid var(--hairline);
+      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      font-size: 14px; line-height: 2; color: var(--mute);
+    }
+
+    .slide-head.anim-in, .fig-caption.anim-in { animation: headIn .34s cubic-bezier(.25, .6, .3, 1) both; }
+    @keyframes headIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    @media (max-width: 768px) {
+      .stage { padding-top: 48px; }
+      .hero-title { font-size: 28px; }
+      .pnav { padding: 0 16px; gap: 8px; }
+      .nav-tab { padding: 8px 10px; }
+      .pnav-sub { display: none; }
+    }
+
+    /* ============ ВНУТРЕННЕЕ ПРИЛОЖЕНИЕ TPA (тёмная тема, как в оригинале) ============ */
+    .app {
+      --bg: var(--canvas);
+      --surface: var(--canvas);
+      --surface2: var(--surface-soft);
+      --border: var(--hairline);
+      --text: var(--ink);
+      --muted: var(--mute);
+      --accent: #007aff;
+      --accent-hover: #0056b3;
+      --accent-bg: rgba(0, 122, 255, 0.08);
+      --accent-bg-hover: rgba(0, 122, 255, 0.14);
+      --ok: #30d158;
+      --warn: #ff9f0a;
+      --err: #ff3b30;
+      --na-bg: var(--surface-card);
+      --na-text: var(--mute);
+      --high-bg: rgba(48, 209, 88, 0.14);
+      --high-text: var(--charcoal);
+      --dev-bg: rgba(255, 159, 10, 0.14);
+      --dev-text: #995f06;
+      --zero-text: var(--accent);
+      --health-ok-bg: rgba(48, 209, 88, 0.14);
+      --health-ok-text: var(--charcoal);
+      --star-inactive: var(--ash);
+      --star-active: var(--warn);
+      --tooltip-bg: var(--surface-soft);
+      --panel-shadow: none;
+      --log-warn-text: #995f06;
+      --log-warn-bg: rgba(255, 159, 10, 0.1);
+      --danger: #ff3b30;
+      --danger-hover: #d70015;
+      --font: var(--font-mono);
+      --r-panel: 0;
+      --r-card: 0;
+      --r-el: 4px;
+      --r-mini: 0;
+      --r-pill: 4px;
+      --r-tab: 0;
+      margin: 0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.3rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--panel-shadow);
+    }
+    .topbar .btn { padding: 0.45rem 0.9rem; font-size: 0.85rem; }
+    .topbar .health-badge { font-size: 0.75rem; padding: 0.35rem 0.75rem; }
+    .topbar .uptime-display {
+      font-size: 0.75rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--surface2);
+      color: var(--muted);
+      border-radius: var(--r-card);
+      font-variant-numeric: tabular-nums;
+    }
+    .block-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 6px 1rem;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--hairline);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 2;
+      color: var(--mute);
+    }
+    .block-indicator { color: var(--ink); font-weight: 700; cursor: pointer; }
+    .block-indicator:hover { color: var(--accent); }
+    .block-bar-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .block-hint { color: var(--stone); }
+    .block-info-btn {
+      background: transparent;
+      border: none;
+      color: var(--mute);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 2;
+      padding: 0 4px;
+      cursor: pointer;
+    }
+    .block-info-btn:hover { color: var(--ink); }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: transparent;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+    .modal-backdrop.open { display: flex; align-items: flex-start; justify-content: center; }
+    .modal {
+      width: min(780px, 100%);
+      max-width: calc(100vw - 48px);
+      margin: 32px auto 0;
+      max-height: min(680px, calc(100vh - 80px));
+      overflow: auto;
+      background: var(--canvas);
+      color: var(--ink);
+      border: 1px solid var(--hairline-strong);
+      border-radius: 0;
+      padding: 24px;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid var(--hairline);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+    .modal-title { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.5; color: var(--ink); }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      line-height: 1;
+      color: var(--mute);
+      cursor: pointer;
+      padding: 0 4px;
+      font-family: var(--font-mono);
+    }
+    .modal-close:hover { color: var(--ink); }
+    .modal-body { font-size: 16px; line-height: 1.5; color: var(--body-c); }
+    .modal-body p { margin: 0 0 12px; }
+    .modal-list { margin: 0; padding: 0; list-style: none; }
+    .modal-list li {
+      padding: 6px 0;
+      border-bottom: 1px solid var(--hairline);
+      font-size: 14px;
+      line-height: 2;
+      color: var(--body-c);
+    }
+    .modal-list li:last-child { border-bottom: none; }
+    .modal-note {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--hairline);
+      font-size: 14px;
+      line-height: 2;
+      color: var(--mute);
+    }
+    .modal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .modal-nav-btn {
+      background: var(--canvas);
+      border: 1px solid var(--hairline-strong);
+      color: var(--ink);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 2;
+      padding: 2px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .modal-nav-btn:hover { background: var(--surface-soft); border-color: var(--ink); }
+    .modal-counter { color: var(--mute); font-size: 14px; }
+    .brand { display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+    .brand-logo { height: 52px; width: auto; }
+    .brand h1 { margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.2; }
+    .subtitle { font-size: 0.85rem; color: var(--muted); line-height: 1.2; }
+    .health-badge { font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: var(--r-pill); font-weight: 600; }
+    .health-ok { background: var(--health-ok-bg); color: var(--health-ok-text); }
+
+    .app .layout {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      gap: 1rem;
+      padding: 1rem;
+      width: 100%;
+      margin: 0;
+      min-height: calc(100vh - 110px);
+    }
+    .filters { grid-row: span 2; }
+    .detail-panel { grid-column: 2; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-panel);
+      padding: 1rem;
+      box-shadow: var(--panel-shadow);
+    }
+    .panel h2 { margin: 0 0 0.75rem; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); }
+
+    .filter-grid { display: flex; flex-direction: column; gap: 0.65rem; }
+    .app label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: var(--muted); }
+    .app input, .app select, .app textarea {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: var(--r-el);
+      padding: 0.45rem 0.6rem;
+      font-size: 0.9rem;
+      font-family: var(--font);
+      width: 100%;
+    }
+    .app input:focus, .app select:focus, .app textarea:focus { outline: none; border-color: var(--ink); background: var(--canvas); }
+    .app textarea { resize: vertical; min-height: 2.4rem; line-height: 1.35; }
+    .filter-actions { display: flex; align-items: center; gap: 0.75rem; margin: 0.75rem 0; flex-wrap: wrap; }
+    .blend-types-wrap { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .blend-types-label { font-size: 0.78rem; color: var(--muted); }
+    .blend-types-chips { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .bt-chip { font-size: 0.72rem; padding: 0.15rem 0.55rem; border: 1px solid var(--border); border-radius: var(--r-pill); color: var(--text); background: var(--surface2); }
+    .bt-chip.on { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+    .btn { border: none; border-radius: var(--r-el); padding: 0.5rem 1rem; font-size: 0.85rem; cursor: pointer; font-weight: 600; font-family: var(--font); transition: background 0.15s, border-color 0.15s; }
+    .btn.primary { background: var(--ink); color: var(--canvas); }
+    .btn.primary:hover { background: var(--ink-deep); }
+    .btn.secondary { background: var(--canvas); color: var(--ink); border: 1px solid var(--hairline-strong); }
+    .btn.secondary:hover:not(:disabled) { border-color: var(--ink); }
+    .btn.danger { background: var(--danger); color: var(--canvas); }
+    .btn:disabled { background: var(--surface-card); color: var(--ash); cursor: not-allowed; opacity: 1; }
+
+    .muted { font-size: 0.8rem; color: var(--muted); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+    .panel-head h2 { margin: 0; }
+    .panel-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    .fav-star { cursor: pointer; font-size: 1.1rem; line-height: 0; color: var(--star-inactive); user-select: none; }
+    .fav-star.active { color: var(--star-active); }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      max-height: 320px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-card);
+    }
+    .batches-panel .table-wrap { max-height: calc(100vh - 420px); }
+
+    .app table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .app th, .app td { padding: 0.4rem 0.55rem; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+    .app th { background: var(--surface-card); position: sticky; top: 0; z-index: 1; font-weight: 700; color: var(--ink); border-bottom: 1px solid var(--hairline-strong); }
+    .app tbody tr:hover { background: var(--accent-bg); }
+    .app tbody tr.selected { background: var(--accent-bg-hover); }
+    .app tr.section-row td { background: var(--surface-card); font-weight: 700; color: var(--mute); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .cell-na { background: var(--na-bg) !important; color: var(--na-text); }
+    .cell-high-dev-low { background: var(--na-bg) !important; color: var(--na-text); }
+    .cell-high-dev-high { background: var(--high-bg) !important; color: var(--high-text); }
+    .cell-dev { background: var(--dev-bg) !important; color: var(--dev-text); }
+    .cell-zero { color: var(--zero-text); }
+    .cell-manual { color: var(--warn); cursor: help; }
+    .cell-recipe-target { color: var(--accent); }
+
+    .ppl-badge { display: inline-block; padding: 0 5px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right: 3px; border: 1px solid transparent; }
+    .ppl-badge.ppl-in { background: rgba(48, 209, 88, 0.14); color: var(--charcoal); border-color: rgba(48, 209, 88, 0.4); }
+    .ppl-badge.ppl-out { background: rgba(255, 59, 48, 0.12); color: var(--err); border-color: rgba(255, 59, 48, 0.35); }
+    .ppl-badge.ppl-na { background: var(--surface-card); color: var(--mute); border-color: var(--hairline-strong); }
+    .flag-b { display: inline-block; font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: var(--r-pill); border: 1px solid var(--border); }
+    .flag-b.ok { color: var(--charcoal); border-color: rgba(48,209,88,0.4); background: rgba(48,209,88,0.08); }
+    .flag-b.err { color: var(--err); border-color: rgba(255,59,48,0.4); background: rgba(255,59,48,0.08); }
+    .flag-b.warn { color: var(--dev-text); border-color: rgba(255,159,10,0.4); background: rgba(255,159,10,0.08); }
+    .flag-b.info { color: var(--accent); border-color: rgba(0,122,255,0.4); background: var(--accent-bg); }
+    .flag-b.mute { color: var(--muted); }
+    .flag-b.recipe { color: var(--accent); border-color: rgba(0,122,255,0.4); background: rgba(0,122,255,0.08); }
+
+    .tabs { display: flex; gap: 0; margin: 0 0 1rem; flex-wrap: wrap; border-bottom: 1px solid var(--hairline-strong); }
+    .tab { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--mute); padding: 8px 16px; border-radius: 0; cursor: pointer; font-family: var(--font); font-size: 16px; line-height: 2; transition: color 0.15s, border-color 0.15s; margin-bottom: -1px; }
+    .tab:hover { color: var(--charcoal); }
+    .tab.active { color: var(--ink); border-bottom-color: var(--ash); }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    #blockPointer { display: none !important; }
+    .block-badge {
+      position: fixed;
+      z-index: 98;
+      display: none;
+      pointer-events: none;
+      background: #007aff;
+      color: #fff;
+      border: 1px solid #0056b3;
+      padding: 3px 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      border-radius: 4px;
+      box-shadow: 0 1px 0 rgba(15, 0, 0, 0.18);
+      white-space: nowrap;
+    }
+    body.block-modal-open .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--accent-bg);
+    }
+    body.block-modal-open.block-pseudo-open .tab.active {
+      color: var(--muted);
+      border-bottom-color: rgba(10, 15, 25, 0.12);
+      background: transparent;
+    }
+    body.block-modal-open.block-about-open #btnAboutTop,
+    body.block-modal-open.block-settings-open #btnSettingsTop {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      box-shadow: 0 0 0 2px var(--accent-bg);
+    }
+    .spotlight-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      pointer-events: none;
+      z-index: 95;
+    }
+    body.block-modal-open .spotlight-overlay { display: block; }
+    .spotlight-pane {
+      position: absolute;
+      background: rgba(253, 252, 252, 0.34);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+    body.block-about-open .spotlight-pane,
+    body.block-tool-open .spotlight-pane {
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    body.block-about-open .modal-backdrop,
+    body.block-tool-open .modal-backdrop {
+      background: rgba(10, 15, 25, 0.45);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .detail-header { font-size: 14px; margin-bottom: 0.75rem; padding: 8px 12px; background: var(--surface-soft); border: 1px solid var(--hairline); border-radius: 0; line-height: 1.5; color: var(--body-c); }
+    .empty-state { color: var(--muted); font-size: 0.9rem; padding: 1.5rem; text-align: center; }
+
+    .compare-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center; }
+    .compare-toolbar .ml-auto { margin-left: auto; }
+
+    .cmp-filter-btn {
+      background: var(--tooltip-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-el);
+      padding: 3px 10px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--text);
+      font-weight: 600;
+      font-family: var(--font);
+    }
+    .cmp-filter-btn:hover { border-color: var(--accent); }
+    .cmp-filter-btn.active { background: var(--ink); border-color: var(--ink); color: var(--canvas); }
+    .cmp-filter-btn[data-f="high_deviation"] { color: var(--err); border-color: rgba(239,68,68,0.4); }
+    .cmp-filter-btn[data-f="medium_deviation"], .cmp-filter-btn[data-f="noticeable_deviation"] { color: var(--warn); border-color: rgba(245,158,11,0.4); }
+    .cmp-filter-btn[data-f="zero_to_n"], .cmp-filter-btn[data-f="n_to_zero"] { color: var(--accent); border-color: rgba(59,130,246,0.4); }
+    .cmp-filter-btn[data-f="normal"] { color: var(--charcoal); border-color: rgba(48,209,88,0.4); }
+    .cmp-filter-btn[data-f="ppl_in"] { color: var(--charcoal); border-color: rgba(48,209,88,0.4); }
+    .cmp-filter-btn[data-f="ppl_out"] { color: var(--err); border-color: rgba(239,68,68,0.4); }
+    .cmp-filter-btn.active[data-f] { color: var(--canvas); }
+    .filter-label { color: var(--muted); font-size: 0.85rem; margin-right: 6px; }
+
+    .search-input {
+      flex: 1;
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--r-el);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      font-family: var(--font);
+    }
+    .search-input:focus { outline: none; border-color: var(--ink); background: var(--canvas); }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+
+    .ai-mode-bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .ai-mode-group { display: inline-flex; gap: 4px; align-items: center; padding: 2px; border: 1px dashed var(--border); border-radius: var(--r-panel); }
+    .ai-mode-group .btn { padding: 0.35rem 0.8rem; font-size: 0.8rem; }
+    .ai-mode.active { border-color: var(--accent); color: var(--accent); }
+    .ai-actions { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+    .ai-actions .btn { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    #btn-ai-params-toggle.active { border-color: var(--accent); color: var(--accent); }
+    .ai-demo-status {
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      border: 1px dashed var(--border);
+      background: var(--surface-soft);
+      color: var(--body-c);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .ai-demo-status.running { border-color: var(--accent); color: var(--ink); }
+    .ai-demo-status.done { border-color: var(--ok); color: var(--charcoal); }
+    .chat-msg.step {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-bg);
+      align-self: flex-start;
+    }
+    .chat-msg.step .step-title { font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+
+    .ai-split { display: flex; gap: 0.75rem; align-items: stretch; }
+    .ai-chat-col { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+    .ai-params-panel {
+      flex: 0 0 430px;
+      width: 430px;
+      max-width: 430px;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-panel);
+      padding: 0.6rem;
+      max-height: calc(100vh - 300px);
+      min-height: 220px;
+    }
+    .ai-params-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .ai-params-title { font-size: 0.8rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ai-params-close { background: none; border: none; color: var(--muted); font-size: 1.25rem; line-height: 1; cursor: pointer; padding: 0 4px; flex: 0 0 auto; }
+    .ai-params-close:hover { color: var(--text); }
+    .ai-params-toolbar { display: flex; flex-wrap: wrap; row-gap: 4px; align-items: center; gap: 8px; margin: 6px 0 4px; }
+    .ai-params-toolbar input[type="text"] { flex: 1 1 auto; min-width: 0; font-size: 0.8rem; padding: 0.3rem 0.5rem; }
+    .ai-params-nalabel { display: flex; flex-direction: row; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--muted); white-space: nowrap; margin: 0; }
+    .ai-params-nalabel input { width: auto; }
+    .ai-params-body { flex: 1 1 auto; min-height: 120px; display: flex; flex-direction: column; }
+    .ai-params-panel .table-wrap { flex: 1 1 auto; max-height: none; min-height: 0; }
+    #ai-params-table { table-layout: fixed; }
+    #ai-params-table th, #ai-params-table td { overflow: hidden; text-overflow: ellipsis; padding: 0.3rem 0.4rem; }
+    #ai-params-table td:first-child { white-space: normal; word-break: break-word; text-overflow: clip; }
+    #ai-params-table th.num, #ai-params-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    .chat-messages {
+      max-height: calc(100vh - 420px);
+      min-height: 260px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--r-card);
+      padding: 0.75rem;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .chat-msg { padding: 0.5rem 0.75rem; border-radius: var(--r-card); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; max-width: 85%; }
+    .chat-msg.user { background: var(--surface2); align-self: flex-end; border-bottom-right-radius: 0; }
+    .chat-msg.assistant.structured { white-space: normal; max-width: 100%; }
+    .chat-msg-body { white-space: pre-wrap; }
+    .chat-msg.structured .chat-msg-body { white-space: normal; }
+    .chat-msg.system { background: transparent; color: var(--muted); font-style: italic; font-size: 0.78rem; align-self: center; max-width: 100%; text-align: center; }
+    .ftd-md-wrap { margin-top: 0.4rem; max-height: 440px; overflow: auto; border: 1px solid var(--border); border-radius: var(--r-card); background: var(--bg); padding: 0.55rem 0.8rem; }
+    .ftd-md { font-size: 0.8rem; line-height: 1.55; }
+    .ftd-md h3 { margin: 0.7rem 0 0.35rem; font-size: 0.95rem; color: var(--accent); }
+    .ftd-md h4 { margin: 0.65rem 0 0.3rem; font-size: 0.88rem; }
+    .ftd-md h5 { margin: 0.6rem 0 0.25rem; font-size: 0.82rem; color: var(--text); }
+    .ftd-md p { margin: 0.3rem 0; }
+    .ftd-md hr { border: none; border-top: 1px solid var(--border); margin: 0.7rem 0; }
+    .ftd-md blockquote { margin: 0.4rem 0; padding: 0.3rem 0.6rem; border-left: 3px solid var(--accent); background: var(--surface2); border-radius: 0 var(--r-el) var(--r-el) 0; font-size: 0.78rem; }
+    .ftd-md ul, .ftd-md ol { margin: 0.3rem 0 0.3rem 1.3rem; padding: 0; }
+    .ftd-md li { margin: 0.18rem 0; }
+    .ftd-tbl { overflow-x: auto; margin: 0.45rem 0; }
+    .ftd-md table { border-collapse: collapse; width: 100%; font-size: 0.74rem; }
+    .ftd-md th, .ftd-md td { border: 1px solid var(--border); padding: 0.24rem 0.45rem; text-align: left; }
+    .ftd-md th { background: var(--surface2); font-weight: 700; white-space: nowrap; }
+    .ftd-md td { white-space: nowrap; }
+    .ftd-md pre { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.7rem; overflow-x: auto; font-size: 0.72rem; line-height: 1.45; margin: 0.45rem 0; white-space: pre; }
+    .ai-section { margin: 0.45rem 0 0.65rem; padding: 0.35rem 0.5rem; border-left: 3px solid var(--accent); background: color-mix(in srgb, var(--surface2) 70%, transparent); border-radius: 0 var(--r-el) var(--r-el) 0; }
+    .ai-section-title { margin: 0 0 0.25rem; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.01em; color: var(--accent); }
+    .ai-section-body { white-space: pre-wrap; font-size: 0.85rem; }
+    .blend-lessons { margin-top: 6px; font-size: 12px; opacity: 0.9; color: var(--muted); }
+    .analysis-context-meta { margin-top: 6px; font-size: 12px; opacity: 0.9; color: var(--muted); }
+    .ai-questions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0.5rem 0 0; }
+    .ai-questions .btn { padding: 0.3rem 0.7rem; font-size: 0.76rem; }
+    .chat-input-wrap { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+    .chat-input-wrap textarea { flex: 1; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.6rem; margin: 0.65rem 0; }
+    .kpi-card { border: 1px solid var(--hairline); background: var(--surface-card); border-radius: var(--r-el); padding: 0.6rem 0.7rem; }
+    .kpi-label { font-size: 0.72rem; color: var(--muted); }
+    .kpi-value { font-size: 1rem; font-weight: 700; margin-top: 0.25rem; }
+    .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0.2rem; }
+    .param-select { min-width: 280px; }
+    .timeline-wrap { margin: 0.85rem 0 1rem; }
+    .timeline-track { position: relative; height: 10px; background: var(--surface2); border: 1px solid var(--hairline); border-radius: 999px; overflow: hidden; }
+    .timeline-fill { height: 100%; width: 100%; background: linear-gradient(90deg, var(--accent), var(--ok)); }
+    .timeline-points { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0.55rem; margin-top: 1rem; }
+    .tl-card { position: relative; border: 1px solid var(--hairline); background: var(--surface-card); border-radius: var(--r-el); padding: 0.55rem 0.6rem; }
+    .tl-card::before { content: ""; position: absolute; top: -1.15rem; left: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-card); }
+    .tl-time { font-size: 0.72rem; color: var(--muted); }
+    .tl-title { font-weight: 650; margin: 0.25rem 0 0.2rem; }
+    .tl-values { margin: 0; padding: 0; list-style: none; font-size: 0.78rem; display: grid; gap: 0.15rem; }
+    .tab-pane.anim-in { animation: paneIn .34s cubic-bezier(.25, .6, .3, 1) both; }
+    @keyframes paneIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .st-on { animation: popIn .45s ease both; animation-delay: var(--d, 0ms); }
+    @keyframes popIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    .app .layout.height-anim { transition: height .34s cubic-bezier(.25, .6, .3, 1); overflow: hidden; }
+    @media (prefers-reduced-motion: reduce) {
+      .tab-pane.anim-in, .st-on { animation: none; }
+      .slide-head.anim-in, .fig-caption.anim-in { animation: none; }
+      .app .layout.height-anim { transition: none; }
+    }
+    @media (max-width: 1100px) {
+      .app .layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; }
+      .filters { grid-row: auto; }
+      .detail-panel { grid-column: 1; }
+      .ai-split { flex-direction: column; }
+      .ai-params-panel { max-width: none; width: auto; }
+    }
+    @media (max-width: 900px) {
+      .topbar { padding: 0.3rem 0.6rem; }
+      .topbar .btn { padding: 0.35rem 0.6rem; font-size: 0.78rem; }
+      .brand-logo { height: 42px; }
+      .brand h1 { font-size: 1rem; }
+      .subtitle { display: none; }
+      .block-hint { display: none; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .timeline-points { grid-template-columns: repeat(2, 1fr); }
+      .modal-backdrop { padding: 16px; }
+      .modal {
+        max-width: calc(100vw - 32px);
+        margin-top: 16px;
+        max-height: calc(100vh - 32px);
+      }
+    }
+    @media (max-width: 560px) {
+      .topbar .uptime-display { display: none; }
+      .topbar .demo-badge { display: none; }
+      .modal-backdrop { padding: 12px; }
+      .modal {
+        width: calc(100vw - 24px);
+        max-width: calc(100vw - 24px);
+        margin-top: 12px;
+        padding: 16px;
+        max-height: calc(100vh - 24px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+        <header class="topbar">
+          <div class="brand">
+            <img class="brand-logo" src="__TPA_LOGO__" alt="TPA logo">
+            <div>
+              <h1>TPA — Tobacco Production Analyzer</h1>
+              <span class="subtitle">PSS4 Runtime / local :1131</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.35rem;flex-wrap:wrap;">
+            <button type="button" class="btn primary" id="btnAiDemoTop" title="Перейти к демо AI-анализа">🤖 AI Анализ — демо</button>
+            <span class="demo-badge">DEMO · реальные партии QRA0R · DRY — демо</span>
+            <div class="health-badge health-ok">DB OK</div>
+            <span class="uptime-display">Uptime: 12 d 4 h</span>
+            <button class="btn secondary">LCM</button>
+            <button class="btn secondary">📋 BackLog</button>
+            <button class="btn secondary" id="btnSettingsTop">⚙ Настройки</button>
+            <button class="btn secondary">📋 Логи</button>
+            <button class="btn secondary" id="btnAboutTop">📖 BPWATTS</button>
+            <button class="btn secondary">⟳ Перезагрузить</button>
+            <button class="btn secondary">✕ Выключить</button>
+          </div>
+        </header>
+
+        <div class="block-bar">
+          <span class="block-indicator" id="blockIndicator" title="Показать описание блока">[+] 01 · BPWATTS — кратко</span>
+          <div class="block-bar-right">
+            <button type="button" class="block-info-btn" id="btnBlockInfo">[?] О блоке</button>
+            <span class="block-hint">← → переключение блоков · демо-данные</span>
+          </div>
+        </div>
+
+        <main class="layout" id="layout">
+          <section class="panel filters">
+            <h2>Период и смесь</h2>
+            <div class="filter-grid">
+              <label>С
+                <input type="date" value="2026-09-01">
+              </label>
+              <label>По
+                <input type="date" value="2026-09-30">
+              </label>
+              <label>Фильтр
+                <select><option>Код / название смеси</option><option>ID смеси</option></select>
+              </label>
+              <label>Поиск смеси
+                <input type="text" value="QRA0R" autocomplete="off">
+              </label>
+              <label>Поиск по BatchIdent
+                <textarea rows="2" placeholder="Список номеров партий через запятую, пробел или новую строку" autocomplete="off">1100903, 1200902</textarea>
+              </label>
+              <label>CF Name
+                <select><option>Все CF</option><option>CFS Ladoga CPS</option></select>
+              </label>
+              <label class="blend-select-label">
+                Смесь
+                <input type="text" value="QRA0R" class="blend-filter-input" autocomplete="off">
+                <select><option>QRA0R «BS141D» (30 партий)</option></select>
+              </label>
+            </div>
+            <div class="filter-actions">
+              <button class="btn primary">Загрузить смеси</button>
+              <button class="btn secondary">✕ Сбросить фильтр</button>
+            </div>
+            <div class="muted" style="margin-bottom:0.5rem">Загружено: 1 смесь · 30 партий · DRY YIELD — демо-значения (ODC недоступен)</div>
+            <div class="blend-types-wrap">
+              <span class="blend-types-label">Тип сырья:</span>
+              <div class="blend-types-chips">
+                <span class="bt-chip on">Lamina (30)</span>
+                <span class="bt-chip">Aroma (0)</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel batches-panel">
+            <div class="panel-head">
+              <h2>Партии</h2>
+              <div class="panel-buttons">
+                <button class="btn secondary">★ Избранное (1)</button>
+                <button class="btn primary">AI Анализ</button>
+                <button class="btn secondary">Сравнить (2)</button>
+                <button class="btn secondary">✕ Сбросить выбор</button>
+                <button class="btn secondary">↺ Колонки</button>
+                <button class="btn secondary">📊 Сравнение Blend</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th><input type="checkbox" checked style="width:auto"></th>
+                    <th></th>
+                    <th>Дата</th>
+                    <th>Смесь</th>
+                    <th>Версия Рецепта</th>
+                    <th>CF Name</th>
+                    <th>IBC / non-IBC</th>
+                    <th>AROMA</th>
+                    <th>BatchIdent</th>
+                    <th>ProdQTY</th>
+                    <th>DRY YIELD</th>
+                    <th>Линия</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><input type="checkbox" style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-01 12:29</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1010905</td>
+                    <td>11 104 kg</td>
+                    <td><span style="color:var(--ok)">88.4</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-04 06:24</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1040903</td>
+                    <td>11 236 kg</td>
+                    <td><span style="color:var(--ok)">89.1</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr class="selected">
+                    <td><input type="checkbox" checked style="width:auto"></td>
+                    <td><span class="fav-star active">★</span></td>
+                    <td>2026-09-11 03:25</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1100903</td>
+                    <td>10 943 kg</td>
+                    <td><span style="color:var(--err)">86.7</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-13 18:24</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.20</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1130911</td>
+                    <td>11 000 kg</td>
+                    <td><span style="color:var(--ok)">88.9</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-17 02:38</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1170903</td>
+                    <td>11 234 kg</td>
+                    <td><span style="color:var(--ok)">89.4</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr class="selected">
+                    <td><input type="checkbox" checked style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-20 06:18</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1200902</td>
+                    <td>11 015 kg</td>
+                    <td><span style="color:var(--ok)">89.6</span></td>
+                    <td>LA</td>
+                  </tr>
+                  <tr>
+                    <td><input type="checkbox" style="width:auto"></td>
+                    <td><span class="fav-star">★</span></td>
+                    <td>2026-09-30 06:43</td>
+                    <td>QRA0R</td>
+                    <td>QRA0R V.19</td>
+                    <td>CFS Ladoga CPS</td>
+                    <td>IBC</td>
+                    <td>—</td>
+                    <td>1300905</td>
+                    <td>11 094 kg</td>
+                    <td><span style="color:var(--ok)">89.9</span></td>
+                    <td>LA</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel detail-panel">
+            <div class="tabs">
+              <button type="button" class="tab active" data-tab="tab-single">Одна партия</button>
+              <button type="button" class="tab" data-tab="tab-compare">Сравнение</button>
+              <button type="button" class="tab" data-tab="tab-params">🔎 Поиск по параметру</button>
+              <button type="button" class="tab" data-tab="tab-lcm">TimeLine</button>
+              <button type="button" class="tab" data-tab="tab-inbatch">InBatch Рецепт</button>
+              <button type="button" class="tab" data-tab="tab-ai">AI Анализ</button>
+              <button type="button" class="tab" data-tab="tab-blendai">🤖 AI по Blend</button>
+            </div>
+
+            <div id="tab-single" class="tab-pane active">
+              <div class="detail-header">1100903 · QRA0R «BS141D» · QRA0R V.19 · 2026-09-11 03:25 · CF CFS Ladoga CPS · IBC · 10 943 kg · линия LA · DRY YIELD 86.7% (демо)</div>
+              <div class="compare-toolbar">
+                <button class="btn secondary">📊 Экспорт в Excel</button>
+                <button class="btn secondary">📁 Открыть папку</button>
+                <button class="btn secondary ml-auto">Скрыть N/A</button>
+                <button class="btn secondary">Только N/A</button>
+              </div>
+              <div class="compare-toolbar">
+                <div class="search-wrap">
+                  <input type="text" class="search-input" placeholder="🔍 Поиск по ID или наименованию...">
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Секция / Параметр</th><th>Значение</th><th>Цель (PPL)</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr class="section-row"><td colspan="3">Manual / WB — ручные корректировки</td></tr>
+                    <tr><td>AB Feeder RS Comas - Total Wet Weight <span class="cell-manual" title="Изменено вручную">✏️</span></td><td>50.0 kg</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                    <tr><td>Final-WB-Dry-Real <span class="cell-manual" title="Изменено вручную">✏️</span></td><td>9 567.09 kg</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                    <tr><td>Final-WB-Qty-Real <span class="cell-manual" title="Изменено вручную">✏️</span></td><td>11 050.3 kg</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                    <tr class="section-row"><td colspan="3">Recipe / PPL — состав и цели</td></tr>
+                    <tr><td>Batch Size <small style="color:var(--muted)">#3</small></td><td>10 000 kg</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>10 000 🎯</td></tr>
+                    <tr><td>CL - Tobacco Type</td><td>SC</td><td><span class="ppl-badge ppl-na">—</span>SC</td></tr>
+                    <tr><td>CL - Tobacco ISS Rate</td><td>0.0 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>0 🎯</td></tr>
+                    <tr><td>BU - Tobacco Type</td><td>BU</td><td><span class="ppl-badge ppl-na">—</span>BU</td></tr>
+                    <tr><td>BU - Tobacco ISS Rate</td><td>26.0 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>26 🎯</td></tr>
+                    <tr><td>FC - Tobacco ISS Rate</td><td>37.5 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>37.5 🎯</td></tr>
+                    <tr><td>Stems Type</td><td>SE001</td><td><span class="ppl-badge ppl-na">—</span>SE001</td></tr>
+                    <tr><td>Stems ISS Rate</td><td>14.5 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>14.5 🎯</td></tr>
+                    <tr><td>Stems Estimated Moisture (QA 167)</td><td>12.5 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>12.5 🎯</td></tr>
+                    <tr><td>Stems Application Ratio</td><td>20.62 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>20.62 🎯</td></tr>
+                    <tr><td>ET Blend Code</td><td>AA10F</td><td><span class="ppl-badge ppl-na">—</span>AA10F</td></tr>
+                    <tr><td>ET ISS Rate</td><td>22.0 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>22 🎯</td></tr>
+                    <tr><td>ET Estimated Moisture</td><td>11.0 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>11 🎯</td></tr>
+                    <tr><td>ET Application Ratio</td><td>31.28 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>31.28 🎯</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div id="tab-compare" class="tab-pane">
+              <div class="detail-header">СРАВНЕНИЕ: 2 ПАРТИИ · QRA0R «BS141D» · период 01.09.2026 – 30.09.2026</div>
+              <div class="compare-toolbar">
+                <button class="btn secondary">📊 Экспорт в Excel</button>
+                <button class="btn secondary">📁 Открыть папку</button>
+              </div>
+              <div class="compare-toolbar">
+                <span class="filter-label">Фильтр:</span>
+                <button class="cmp-filter-btn active" data-f="all">Все</button>
+                <button class="cmp-filter-btn" data-f="high_deviation">Высокое отклонение</button>
+                <button class="cmp-filter-btn" data-f="medium_deviation">Среднее отклонение</button>
+                <button class="cmp-filter-btn" data-f="noticeable_deviation">Заметное отклонение</button>
+                <button class="cmp-filter-btn" data-f="zero_to_n">Из нуля в значение</button>
+                <button class="cmp-filter-btn" data-f="n_to_zero">Из значения в ноль</button>
+                <button class="cmp-filter-btn" data-f="normal">Норма</button>
+                <button class="cmp-filter-btn" data-f="missing">Отсутствует</button>
+                <button class="cmp-filter-btn" data-f="ppl_in">🎯 В цели</button>
+                <button class="cmp-filter-btn" data-f="ppl_out">⚠️ Вне цели</button>
+                <button class="cmp-filter-btn" data-f="recipe_target">🧬 Цели рецепта (PSS4)</button>
+                <button class="cmp-filter-btn" data-f="manual_changed">✏️ Корректировка вручную</button>
+                <button class="btn secondary" style="margin-left:12px;">Скрыть N/A</button>
+                <button class="btn secondary">Только N/A</button>
+                <button class="cmp-filter-btn ml-auto">↺ Сбросить сортировку</button>
+              </div>
+              <div class="compare-toolbar">
+                <div class="search-wrap">
+                  <input type="text" class="search-input" placeholder="🔍 Поиск по ID или наименованию...">
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Параметр</th>
+                      <th>ID</th>
+                      <th>1100903<br><small>QRA0R | DRY 86.7 (демо)</small><br><small style="color:var(--accent)">QRA0R V.19</small><br><small style="color:var(--muted)">9 h 30 m</small></th>
+                      <th>1200902<br><small>QRA0R | DRY 89.6 (демо)</small><br><small style="color:var(--accent)">QRA0R V.19</small><br><small style="color:var(--muted)">12 h 43 m</small></th>
+                      <th>Δ</th>
+                      <th>Отклонение</th>
+                      <th>Цель</th>
+                      <th>Статус</th>
+                      <th title="target — параметр входит в целевой список рецепта PSS4 / PPL; fact — только фактическое значение">Fact / Target</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>AB Feeder GQ1 - Total Wet Weight</td>
+                      <td>—</td>
+                      <td class="cell-high-dev-high">1 064.201</td>
+                      <td class="cell-high-dev-high">220.5803</td>
+                      <td class="cell-high-dev-high">−843.6207</td>
+                      <td class="cell-high-dev-high">−79.3%</td>
+                      <td>—</td>
+                      <td><span class="flag-b err">⚠️ высокое отклонение</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder GQ1 - Weight 1</td>
+                      <td>—</td>
+                      <td class="cell-high-dev-high">1 064.201</td>
+                      <td class="cell-high-dev-high">220.5511</td>
+                      <td class="cell-high-dev-high">−843.6499</td>
+                      <td class="cell-high-dev-high">−79.3%</td>
+                      <td>—</td>
+                      <td><span class="flag-b err">⚠️ высокое отклонение</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder 829 - Total Wet Weight</td>
+                      <td>—</td>
+                      <td class="cell-zero">0</td>
+                      <td class="cell-zero">743.7</td>
+                      <td class="cell-zero">+743.7</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td><span class="flag-b info">из нуля в значение</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder 833 - Planned Wet Weight</td>
+                      <td>—</td>
+                      <td class="cell-zero">2 300</td>
+                      <td class="cell-zero">0</td>
+                      <td class="cell-zero">−2 300</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td><span class="flag-b info">из значения в ноль</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder GQ3 - Total Wet Weight</td>
+                      <td>—</td>
+                      <td class="cell-zero">1 114.147</td>
+                      <td class="cell-zero">0</td>
+                      <td class="cell-zero">−1 114.147</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td><span class="flag-b info">из значения в ноль</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder GQ2 - BatchID 1 <span class="cell-manual" title="Изменено вручную">✏️</span></td>
+                      <td>—</td>
+                      <td>0</td>
+                      <td class="cell-na">N/A</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td><span class="flag-b mute">отсутствует</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>AB Feeder RS Comas - Total Wet Weight <span class="cell-manual" title="Изменено вручную">✏️</span></td>
+                      <td>—</td>
+                      <td>50.0</td>
+                      <td>50.0</td>
+                      <td>0</td>
+                      <td>0%</td>
+                      <td>—</td>
+                      <td><span class="flag-b ok">норма</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>Final-WB-Dry-Real <span class="cell-manual" title="Изменено вручную">✏️</span></td>
+                      <td>—</td>
+                      <td>9 567.09</td>
+                      <td>9 529.785</td>
+                      <td>−37.305</td>
+                      <td>−0.4%</td>
+                      <td>—</td>
+                      <td><span class="flag-b ok">норма</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>Master-WB-Dry-Real <span class="cell-manual" title="Изменено вручную">✏️</span></td>
+                      <td>—</td>
+                      <td>6 207.542</td>
+                      <td>6 140.4</td>
+                      <td>−67.142</td>
+                      <td>−1.1%</td>
+                      <td>—</td>
+                      <td><span class="flag-b ok">норма</span></td>
+                      <td>fact</td>
+                    </tr>
+                    <tr>
+                      <td>Batch Size</td>
+                      <td>3</td>
+                      <td>10 000</td>
+                      <td>10 000</td>
+                      <td>0</td>
+                      <td>0%</td>
+                      <td>10 000 🎯</td>
+                      <td><span class="flag-b ok">🎯 В цели</span></td>
+                      <td>target</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="muted" style="margin-top:0.5rem">Экспорт: TPA_Compare_QRA0R_2b_20260930.xlsx · 3 528 строк, автофильтр, колонка «Fact / Target»</div>
+            </div>
+
+            <div id="tab-ai" class="tab-pane">
+              <div class="ai-mode-bar">
+                <span class="ai-mode-group">
+                  <button type="button" class="btn secondary ai-mode active">📊 Стандартный</button>
+                  <button type="button" class="btn secondary ai-mode">❓ Свой вопрос</button>
+                </span>
+                <span class="muted"></span>
+              </div>
+              <div class="ai-actions">
+                <button type="button" class="btn primary" id="btnAiDemoRun">▶ Имитация обсуждения</button>
+                <button type="button" class="btn secondary" id="btnAiDemoReset">↺ Сброс</button>
+                <button class="btn secondary">⚡ Анализ сравнения</button>
+                <button class="btn secondary">🆕 Новый диалог</button>
+                <button class="btn secondary" id="btn-ai-params-toggle">📋 Параметры</button>
+                <button class="btn secondary" disabled>📄 Экспорт чата (MD)</button>
+                <button class="btn secondary" disabled>📊 Полный отчёт</button>
+                <button class="btn secondary">📁 Открыть папку</button>
+              </div>
+              <div class="ai-demo-status" id="aiDemoStatus">[AI DEMO] Готов к имитации: обсуждение → результат</div>
+              <div class="ai-split">
+                <div class="ai-chat-col">
+                  <div class="chat-messages">
+<div class="chat-msg user">⚡ AI анализ партий 1100903 и 1200902</div>
+                    <div class="chat-msg system" id="aiDemoHint">Имитация не запущена. Нажмите «▶ Имитация обсуждения» или дождитесь автозапуска после закрытия окна описания.</div>
+                    <div class="chat-msg assistant structured hidden ai-demo-final">
+                      <div class="chat-msg-body">
+                        <section class="ai-section known"><h3 class="ai-section-title">Смесь</h3><div class="ai-section-body">QRA0R «BS141D» — рецепт QRA0R V.19 (рев. 2026-08-28), CF CFS Ladoga CPS.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Партии</h3><div class="ai-section-body">1100903 — 2026-09-11
+1200902 — 2026-09-20</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">DRY YIELD</h3><div class="ai-section-body">Демо-значения (ODC недоступен):
+1100903: 86.7%
+1200902: 89.6%</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Вне цели</h3><div class="ai-section-body">PPL по рецепту: 119 параметров, 0 вне допусков, 20 без факта.
+Значимые разбросы — AB Feeder GQ1/GQ3/829/833 и ручные корректировки WB.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Гипотеза причины</h3><div class="ai-section-body">Разница в демо DRY YIELD связывается с сильным различием AddBack feeders: AB Feeder GQ1 1 064.201 → 220.5803 (−79.3%), AB Feeder 829 из нуля в 743.7, AB Feeder GQ3 и 833 — из значения в ноль. В 1200902 есть ручные корректировки Master-WB и AddBack, что требует проверки полноты данных.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Что не причина</h3><div class="ai-section-body">• Batch Size и составные параметры CL/BU/FC/Stems/ET — совпадают или в цели
+• AB Feeder RS Comas - Total Wet Weight одинаков (50.0)
+• DRY YIELD в макете демонстрационный, поэтому вывод о DRY ограничен</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Уверенность</h3><div class="ai-section-body">Средняя (5/10): партии, параметры, PPL и ручные корректировки — реальные; DRY YIELD — демо из-за недоступности ODC.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Комментарий</h3><div class="ai-section-body">RAG/уроки: для QRA0R в реальном приложении подтягиваются уроки смеси и справочные цитаты; в макете показана структура ответа.</div></section>
+                      </div>
+                      <div class="blend-lessons">Уроки этой смеси: QRA0R — место для подтверждённых уроков и RAG-цитат; в макете live RAG не запрашивается</div>
+                      <div class="analysis-context-meta">⏱ 4.2 с · цитаты RAG: 0 · уроки смеси: 0 · модель: qa-api-model (демо, данные не покидают контур)</div>
+                    </div>
+                  </div>
+                  <div class="ai-questions">
+                    <span class="muted">Быстрые вопросы:</span>
+                    <button type="button" class="btn secondary">Вне цели PPL</button>
+                    <button type="button" class="btn secondary">Отклонения между партиями</button>
+                    <button type="button" class="btn secondary">Влияние на DRY YIELD</button>
+                    <button type="button" class="btn secondary">Рекомендации</button>
+                  </div>
+                  <div class="chat-input-wrap">
+                    <textarea rows="2" placeholder="Задайте вопрос о партии... (Shift+Enter = новая строка, Enter = отправить)" autocomplete="off"></textarea>
+                    <button class="btn primary">Отправить</button>
+                  </div>
+                </div>
+                <div class="ai-params-panel">
+                  <div class="ai-params-head">
+                    <span class="ai-params-title">📋 Параметры — 1100903 vs 1200902</span>
+                    <button type="button" class="ai-params-close">×</button>
+                  </div>
+                  <div class="ai-params-toolbar">
+                    <input type="text" placeholder="🔍 Поиск по ID или наименованию...">
+                    <label class="ai-params-nalabel"><input type="checkbox" checked> скрыть N/A</label>
+                    <label class="ai-params-nalabel"><input type="checkbox"> только N/A</label>
+                    <label class="ai-params-nalabel"><input type="checkbox"> Δ нет</label>
+                    <label class="ai-params-nalabel"><input type="checkbox" checked> Δ средняя</label>
+                    <label class="ai-params-nalabel"><input type="checkbox" checked> Δ высокая</label>
+                  </div>
+                  <div class="ai-params-body">
+                    <div class="table-wrap">
+                      <table id="ai-params-table">
+                        <colgroup><col style="width:34%"><col style="width:16%"><col style="width:16%"><col style="width:12%"><col style="width:22%"></colgroup>
+                        <thead>
+                          <tr><th>Параметр</th><th class="num">1100903</th><th class="num">1200902</th><th class="num">Δ</th><th>Цель (PPL)</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>AB Feeder GQ1 - Total Wet Weight</td><td class="num cell-high-dev-high">1 064.201</td><td class="num cell-high-dev-high">220.5803</td><td class="num cell-high-dev-high">−843.6207</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>AB Feeder 829 - Total Wet Weight</td><td class="num cell-zero">0</td><td class="num cell-zero">743.7</td><td class="num cell-zero">+743.7</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>AB Feeder 833 - Planned Wet Weight</td><td class="num cell-zero">2 300</td><td class="num cell-zero">0</td><td class="num cell-zero">−2 300</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>AB Feeder GQ3 - Total Wet Weight</td><td class="num cell-zero">1 114.147</td><td class="num cell-zero">0</td><td class="num cell-zero">−1 114.147</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>AB Feeder RS Comas - Total Wet Weight <span class="cell-manual">✏️</span></td><td class="num">50.0</td><td class="num">50.0</td><td class="num">0</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>Final-WB-Dry-Real <span class="cell-manual">✏️</span></td><td class="num">9 567.09</td><td class="num">9 529.785</td><td class="num">−37.305</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>Master-WB-Dry-Real <span class="cell-manual">✏️</span></td><td class="num">6 207.542</td><td class="num">6 140.4</td><td class="num">−67.142</td><td><span class="ppl-badge ppl-na">—</span></td></tr>
+                          <tr><td>Batch Size</td><td class="num">10 000</td><td class="num">10 000</td><td class="num">0</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>10 000 🎯</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-params" class="tab-pane">
+              <div class="detail-header">ПОИСК ПО ПАРАМЕТРУ · QRA0R · 7 партий · 2026-09</div>
+              <div class="compare-toolbar">
+                <select id="paramSelect" class="search-input param-select">
+                  <option value="dry">DRY YIELD</option>
+                  <option value="batch">Batch Size</option>
+                  <option value="finalwb">Final-WB-Dry-Real</option>
+                </select>
+                <button class="btn secondary">📊 Экспорт в Excel</button>
+                <button class="btn secondary">Скрыть N/A</button>
+                <button class="btn secondary">Только N/A</button>
+              </div>
+              <div class="kpi-row" id="paramKpi"></div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>BatchIdent</th><th>Дата</th><th>Рецепт</th><th class="num" id="paramValueHead">Значение</th><th>Цель (PPL)</th><th>Статус</th></tr>
+                  </thead>
+                  <tbody id="paramMatrixBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div id="tab-lcm" class="tab-pane">
+              <div class="detail-header">TIME LINE · 1100903 · 2026-09-11 03:25–12:55 · 9 h 30 m · QRA0R V.19</div>
+              <div class="compare-toolbar">
+                <button class="btn secondary">Участки</button>
+                <button class="btn secondary">Параметры</button>
+                <button class="btn secondary">События</button>
+                <button class="btn secondary ml-auto">📊 Экспорт в Excel</button>
+              </div>
+              <div class="timeline-wrap">
+                <div class="timeline-track"><div class="timeline-fill"></div></div>
+                <div class="timeline-points">
+                  <div class="tl-card"><div class="tl-time">03:25</div><div class="tl-title">Старт партии</div><ul class="tl-values"><li>Batch Size: 10 000 kg</li><li>QRA0R V.19</li></ul></div>
+                  <div class="tl-card"><div class="tl-time">04:10</div><div class="tl-title">AB Feeder</div><ul class="tl-values"><li>GQ1: 1 064.201</li><li>833: 2 300</li><li>GQ3: 1 114.147</li></ul></div>
+                  <div class="tl-card"><div class="tl-time">07:40</div><div class="tl-title">AddBack</div><ul class="tl-values"><li>RS Comas: 50.0 <span class="cell-manual" title="Изменено вручную">✏️</span></li></ul></div>
+                  <div class="tl-card"><div class="tl-time">10:15</div><div class="tl-title">Master WB</div><ul class="tl-values"><li>6 207.542 kg <span class="cell-manual" title="Изменено вручную">✏️</span></li></ul></div>
+                  <div class="tl-card"><div class="tl-time">11:50</div><div class="tl-title">Final WB</div><ul class="tl-values"><li>9 567.09 kg <span class="cell-manual" title="Изменено вручную">✏️</span></li></ul></div>
+                  <div class="tl-card"><div class="tl-time">12:55</div><div class="tl-title">Завершение</div><ul class="tl-values"><li>DRY YIELD: 86.7%</li><li>PPL: 0 вне допусков</li></ul></div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Время</th><th>Участок</th><th>Событие</th><th class="num">Значение</th><th>Статус</th></tr></thead>
+                  <tbody>
+                    <tr><td>03:25</td><td>Старт</td><td>Партия создана</td><td class="num">10 000 kg</td><td><span class="flag-b ok">ок</span></td></tr>
+                    <tr><td>04:10</td><td>AB Feeder</td><td>Загрузка AddBack</td><td class="num">GQ1: 1 064.201</td><td><span class="flag-b info">участок</span></td></tr>
+                    <tr><td>07:40</td><td>AddBack</td><td>Ручная корректировка</td><td class="num">50.0 kg</td><td><span class="flag-b warn">✏️ manual</span></td></tr>
+                    <tr><td>10:15</td><td>Master WB</td><td>Ручная корректировка</td><td class="num">6 207.542 kg</td><td><span class="flag-b warn">✏️ manual</span></td></tr>
+                    <tr><td>11:50</td><td>Final WB</td><td>Ручная корректировка</td><td class="num">9 567.09 kg</td><td><span class="flag-b warn">✏️ manual</span></td></tr>
+                    <tr><td>12:55</td><td>Завершение</td><td>DRY YIELD</td><td class="num">86.7%</td><td><span class="flag-b warn">минимум blend</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div id="tab-inbatch" class="tab-pane">
+              <div class="detail-header">INBATCH РЕЦЕПТ · 1100903 · QRA0R V.19 · 10 000 kg</div>
+              <div class="compare-toolbar">
+                <button class="btn secondary">📊 Экспорт в Excel</button>
+                <button class="btn secondary">📁 Открыть папку</button>
+                <div class="search-wrap ml-auto"><input type="text" class="search-input" placeholder="🔍 Поиск по компоненту..."></div>
+              </div>
+              <div class="kpi-row">
+                <div class="kpi-card"><div class="kpi-label">Партия</div><div class="kpi-value">1100903</div><div class="kpi-sub">QRA0R «BS141D»</div></div>
+                <div class="kpi-card"><div class="kpi-label">Batch Size</div><div class="kpi-value">10 000 kg</div><div class="kpi-sub">PPL: в цели</div></div>
+                <div class="kpi-card"><div class="kpi-label">Компоненты</div><div class="kpi-value">5</div><div class="kpi-sub">CL / BU / FC / Stems / ET</div></div>
+                <div class="kpi-card"><div class="kpi-label">Recipe</div><div class="kpi-value">QRA0R V.19</div><div class="kpi-sub">цели PSS4 / PPL</div></div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Компонент</th><th>Тип / код</th><th class="num">ISS Rate</th><th class="num">Est. Moisture</th><th class="num">Application Ratio</th><th>Цель (PPL)</th></tr></thead>
+                  <tbody>
+                    <tr><td>CL</td><td>SC</td><td class="num">0.0 %</td><td class="num cell-na">—</td><td class="num cell-na">—</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>0 🎯</td></tr>
+                    <tr><td>BU</td><td>BU</td><td class="num">26.0 %</td><td class="num cell-na">—</td><td class="num cell-na">—</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>26 🎯</td></tr>
+                    <tr><td>FC</td><td class="cell-na">—</td><td class="num">37.5 %</td><td class="num cell-na">—</td><td class="num cell-na">—</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>37.5 🎯</td></tr>
+                    <tr><td>Stems</td><td>SE001</td><td class="num">14.5 %</td><td class="num">12.5 %</td><td class="num">20.62 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>20.62 🎯</td></tr>
+                    <tr><td>ET</td><td>AA10F</td><td class="num">22.0 %</td><td class="num">11.0 %</td><td class="num">31.28 %</td><td><span class="ppl-badge ppl-in">В ЦЕЛИ</span>31.28 🎯</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="muted" style="margin-top:0.5rem">Составные параметры партии: CL / BU / FC / Stems / ET; цели из Recipe / PPL.</div>
+            </div>
+            <div id="tab-blendai" class="tab-pane">
+              <div class="ai-mode-bar">
+                <span class="ai-mode-group">
+                  <button type="button" class="btn secondary ai-mode active">📦 Смесь QRA0R</button>
+                  <button type="button" class="btn secondary ai-mode">❓ Свой вопрос</button>
+                </span>
+                <span class="muted"></span>
+              </div>
+              <div class="ai-actions">
+                <button type="button" class="btn primary" id="btnBlendDemoRun">▶ Имитация обсуждения</button>
+                <button type="button" class="btn secondary" id="btnBlendDemoReset">↺ Сброс</button>
+                <button class="btn secondary">⚡ Анализ смеси</button>
+                <button class="btn secondary">🆕 Новый диалог</button>
+                <button class="btn secondary" disabled>📄 Экспорт чата (MD)</button>
+                <button class="btn secondary" disabled>📊 Полный отчёт</button>
+              </div>
+              <div class="ai-demo-status" id="blendDemoStatus">[BLEND AI DEMO] Готов к имитации: blend 7 партий → результат</div>
+              <div class="ai-split">
+                <div class="ai-chat-col">
+                  <div class="chat-messages">
+                    <div class="chat-msg user">⚡ AI анализ смеси QRA0R — 7 партий 2026-09</div>
+                    <div class="chat-msg system">Имитация не запущена. Нажмите «▶ Имитация обсуждения» или дождитесь автозапуска после смены вкладки.</div>
+                    <div class="chat-msg assistant structured hidden blend-demo-final">
+                      <div class="chat-msg-body">
+                        <section class="ai-section known"><h3 class="ai-section-title">Смесь</h3><div class="ai-section-body">QRA0R «BS141D» — 7 партий за 2026-09, CFS Ladoga CPS, IBC, линия LA; версии рецепта: QRA0R V.19, одна партия QRA0R V.20.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Партии</h3><div class="ai-section-body">1010905 — 2026-09-01
+1040903 — 2026-09-04
+1100903 — 2026-09-11
+1130911 — 2026-09-13
+1170903 — 2026-09-17
+1200902 — 2026-09-20
+1300905 — 2026-09-30</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">DRY YIELD</h3><div class="ai-section-body">Демо-значения (ODC недоступен):
+Средний по blend: 88.9%
+Мин: 1100903 — 86.7%
+Макс: 1300905 — 89.9%
+Разброс: 3.2 п.п.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Вне цели</h3><div class="ai-section-body">Batch Size по PPL: 10 000 kg — в цели.
+Системного drift по blend не видно; локальные разбросы — AB Feeder / AddBack и ручные WB в 1100903.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Гипотеза причины</h3><div class="ai-section-body">Низкая точка 1100903 связывается с сильными различиями AB Feeder / AddBack weights и ручными корректировками WB. Партия 1300905 показывает стабильный верх диапазона. Партия 1130911 на QRA0R V.20 требует отдельного слежения.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Что не причина</h3><div class="ai-section-body">• Общие для blend: CFS Ladoga CPS, IBC, линия LA
+• Batch Size и PPL Batch Size — совпадают / в цели
+• RAG-цитат и подтверждённых уроков по QRA0R в макете нет</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Уверенность</h3><div class="ai-section-body">Средняя (5/10): партии, даты, ProdQTY и PPL-контекст — реальные; DRY YIELD — демо из-за недоступности ODC.</div></section>
+                        <section class="ai-section known"><h3 class="ai-section-title">Комментарий</h3><div class="ai-section-body">В реальном приложении здесь суммируются данные по всем партиям смеси и подтягиваются уроки QRA0R; в макете live LLM/RAG не запрашивается.</div></section>
+                      </div>
+                      <div class="blend-lessons">Уроки этой смеси: QRA0R — место для подтверждённых уроков и RAG-цитат; в макете live RAG не запрашивается</div>
+                      <div class="analysis-context-meta">⏱ 3.8 с · цитаты RAG: 0 · уроки смеси: 0 · модель: qa-api-model (демо, данные не покидают контур)</div>
+                    </div>
+                  </div>
+                  <div class="ai-questions">
+                    <span class="muted">Быстрые вопросы:</span>
+                    <button type="button" class="btn secondary">Тренд по смеси</button>
+                    <button type="button" class="btn secondary">Аутляеры DRY</button>
+                    <button type="button" class="btn secondary">Смена версии рецепта</button>
+                    <button type="button" class="btn secondary">Рекомендации</button>
+                  </div>
+                  <div class="chat-input-wrap">
+                    <textarea rows="2" placeholder="Задайте вопрос о смеси... (Shift+Enter = новая строка, Enter = отправить)" autocomplete="off"></textarea>
+                    <button class="btn primary">Отправить</button>
+                  </div>
+                </div>
+                <div class="ai-params-panel">
+                  <div class="ai-params-head">
+                    <span class="ai-params-title">📋 Blend — QRA0R, 7 партий</span>
+                    <button type="button" class="ai-params-close">×</button>
+                  </div>
+                  <div class="ai-params-toolbar">
+                    <input type="text" placeholder="🔍 Поиск по BatchIdent...">
+                    <label class="ai-params-nalabel"><input type="checkbox" checked> демо DRY</label>
+                    <label class="ai-params-nalabel"><input type="checkbox"> только аутляеры</label>
+                  </div>
+                  <div class="ai-params-body">
+                    <div class="table-wrap">
+                      <table>
+                        <colgroup><col style="width:20%"><col style="width:22%"><col style="width:20%"><col style="width:20%"><col style="width:18%"></colgroup>
+                        <thead>
+                          <tr><th>BatchIdent</th><th>Дата</th><th>Рецепт</th><th class="num">ProdQTY</th><th class="num">DRY (демо)</th></tr>
+                        </thead>
+                        <tbody>
+                          <tr><td>1010905</td><td>2026-09-01</td><td>QRA0R V.19</td><td class="num">11 104 kg</td><td class="num">88.4</td></tr>
+                          <tr><td>1040903</td><td>2026-09-04</td><td>QRA0R V.19</td><td class="num">11 236 kg</td><td class="num">89.1</td></tr>
+                          <tr><td>1100903</td><td>2026-09-11</td><td>QRA0R V.19</td><td class="num">10 943 kg</td><td class="num cell-high-dev-high">86.7 <span class="flag-b err">мин</span></td></tr>
+                          <tr><td>1130911</td><td>2026-09-13</td><td>QRA0R V.20</td><td class="num">11 000 kg</td><td class="num">88.9</td></tr>
+                          <tr><td>1170903</td><td>2026-09-17</td><td>QRA0R V.19</td><td class="num">11 234 kg</td><td class="num">89.4</td></tr>
+                          <tr><td>1200902</td><td>2026-09-20</td><td>QRA0R V.19</td><td class="num">11 015 kg</td><td class="num">89.6</td></tr>
+                          <tr><td>1300905</td><td>2026-09-30</td><td>QRA0R V.19</td><td class="num">11 094 kg</td><td class="num">89.9 <span class="flag-b ok">макс</span></td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+  </div>
+
+  <div class="spotlight-overlay" aria-hidden="true">
+    <div class="spotlight-pane" id="spotTop"></div>
+    <div class="spotlight-pane" id="spotBottom"></div>
+    <div class="spotlight-pane" id="spotLeft"></div>
+    <div class="spotlight-pane" id="spotRight"></div>
+  </div>
+  <div class="block-badge" id="blockBadge" aria-hidden="true"></div>
+
+  <div class="modal-backdrop" id="blockModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="blockModalTitle">
+      <div class="modal-head">
+        <h2 class="modal-title" id="blockModalTitle">Блок</h2>
+        <button type="button" class="modal-close" id="btnBlockModalClose" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body" id="blockModalBody"></div>
+            <div class="modal-nav">
+        <button type="button" class="modal-nav-btn" id="btnBlockPrev">[←] Пред. блок</button>
+        <span class="modal-counter" id="blockCounter">1 / 3</span>
+        <button type="button" class="modal-nav-btn" id="btnBlockNext">След. блок [→]</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const blockOrder = ["about", "tool", "tab-ai"];
+    const slides = blockOrder;
+    const layout = document.getElementById("layout");
+    const blockIndicator = document.getElementById("blockIndicator");
+    const blockLabels = {
+      "about": "[+] 01 · BPWATTS — кратко",
+      "tool": "[+] 02 · TPA",
+      "tab-ai": "[+] 03 · AI-анализ",
+      "tab-single": "Одна партия",
+      "tab-compare": "Сравнение",
+      "tab-params": "🔎 Поиск по параметру",
+      "tab-lcm": "⏱ TimeLine",
+      "tab-inbatch": "📋 InBatch Рецепт",
+      "tab-blendai": "🤖 AI по Blend",
+      "settings": "⚙ Настройки"
+    };
+    function setBlockLabel(tabId) {
+      if (blockIndicator) blockIndicator.textContent = blockLabels[tabId] || tabId;
+    }
+
+    const blockInfo = {
+      "about": {
+        title: "[+] 01 · BPWATTS — кратко",
+        text: "При отклонениях по Dry Yield и качеству табачного продукта анализ сегодня ведётся по ограниченному стандартному перечню параметров, сформированному на основе предыдущих кейсов и опыта. Система производства формирует более 1000 параметров — часть значимых взаимосвязей физически невозможно отследить вручную.",
+        points: [
+          "Следствие: анализ требует времени, данные вручную объединяются из большого числа Excel-документов, часть причинно-следственных связей остаётся вне поля зрения, реальная причина отклонения локализуется не всегда",
+          "Экспертиза IP (Industrial Performance) и Process Engineering — ключевой элемент анализа: задаёт гипотезы, приоритеты и критерии оценки; но при текущем объёме данных все комбинации параметров вручную не проверяются",
+          "Решение: концепт TPA (Tobacco Production Analyzer) — единый аналитический контур из трёх источников знаний: экспертиза IP + экспертиза Process Engineering + AI-анализ широкого массива параметров",
+          "Симбиоз: AI обрабатывает весь массив параметров и предлагает гипотезы и инсайты, эксперты подтверждают, интерпретируют и применяют выводы в реальном производственном контексте",
+          "Ключевая особенность: локальный AI — анализ на собственных ресурсах компании, без передачи данных во внешние сервисы"
+        ]
+      },
+      "tool": {
+        title: "[+] 02 · TPA",
+        text: "TPA обращается напрямую в PSS и собирает полный набор данных по партии или партиям в зависимости от задачи — на текущий момент более 400 параметров только на линии Lamina. Данные сравниваются со значениями рецепта: система подсвечивает отклонения и девиации. При подключении AI система проводит предварительный анализ, определяет возможные причины отклонений и выдаёт рекомендации по дальнейшим действиям для снижения потерь.",
+        points: [
+          "База знаний (тренинги) по оборудованию табачного цеха",
+          "Описания параметров линии Lamina с указанием влияния каждого параметра",
+          "Анализ Trim-влагомеров",
+          "Анализ композиции табачной мешки (лоты табака)",
+          "Отслеживание ручных изменений параметров и их подсветка в процессе анализа"
+        ]
+      },
+
+      "tab-single": {
+        title: "Одна партия",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Полный список параметров производства выбранной партии",
+          "🎯 — целевые значения по PPL: цель, допуск и статус «В ЦЕЛИ»",
+          "🧬 — целевые значения версии рецепта PSS4",
+          "✏️ — значения, отредактированные вручную оператором",
+          "Секции Manual / WB и Recipe / PPL; экспорт карточки партии в Excel"
+        ]
+      },
+      "tab-ai": {
+        title: "[+] 03 · AI-анализ",
+        text: "«AI Анализ» — разбор партии или сравнения партий локальной LLM. Программа собирает для модели полный контекст: параметры партии, цели PPL и рецепта, DRY YIELD, табачные лоты, пробы влагомера, атрибуты ODC и работу контуров. Модель обучена на наших документах (RAG) и подтверждённых уроках смеси, поэтому отвечает с опорой на внутренний опыт предприятия, а не на общие знания.",
+        points: [
+          "Контекст для анализа: параметры с целями PPL/рецепта, DRY YIELD, лоты, TRIM (влагомеры), ODC-атрибуты, работа контуров",
+          "Работает на наших документах: справочник параметров, документация PR-OM, глоссарий, правила",
+          "Использует уроки эксперта: подтверждённые выводы по смеси доходят до модели как знания",
+          "Фиксированный скелет ответа: Смесь / Партии / DRY YIELD / Вне цели / Гипотеза / Не причина / Уверенность / Комментарий",
+          "Модель указывает «не причина» и уровень уверенности — не выдумывает объяснения",
+          "Локальная LLM: данные не покидают контур предприятия"
+        ]
+      },
+      "tab-compare": {
+        title: "Сравнение",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Итог: значения по каждой партии, Δ (разница), отклонение в %, цель и статус каждого параметра",
+          "Смотреть в первую очередь: высокие и средние отклонения, переходы «из нуля в значение» и «из значения в ноль»",
+          "✏️ — параметры, скорректированные вручную: проверять их раньше физических причин",
+          "🎯 / 🧬 — цели PPL и версии рецепта: в цели партия или вне",
+          "Fact / Target: параметр из целевого списка или просто факт",
+          "Фильтры по отклонениям, N/A и целям; экспорт сравнения в Excel"
+        ]
+      },
+      "tab-params": {
+        title: "🔎 Поиск по параметру",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Интерактивная матрица выбранного параметра по партиям: DRY YIELD, Batch Size, Final-WB-Dry-Real",
+          "KPI: среднее, минимум, максимум; N/A и статусы PPL"
+        ]
+      },
+      "tab-lcm": {
+        title: "⏱ TimeLine",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Временная ось партии: старт, AB Feeder, AddBack, Master WB, Final WB, завершение",
+          "События, значения и ручные корректировки с пометкой ✏️"
+        ]
+      },
+      "tab-inbatch": {
+        title: "📋 InBatch Рецепт",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Состав партии: CL / BU / FC / Stems / ET, ISS Rate, влажность, application ratio",
+          "Цели PPL по компонентам"
+        ]
+      },
+      "tab-blendai": {
+        title: "🤖 AI по Blend",
+        text: "Блок не входит в основной список модулей; вкладка сохранена для демонстрации интерфейса.",
+        points: [
+          "Не только конкретные партии: анализ охватывает все партии выбранной смеси за период",
+          "KPI blend: число партий, общий вес, средний DRY YIELD и его разброс",
+          "Аутляеры: партии с минимальным и максимальным DRY YIELD — кандидаты на детальный разбор",
+          "PPL и версии рецепта: где смесь стабильно в цели, где появляются отклонения",
+          "Гипотеза и рекомендации на уровне blend с уроками смеси и RAG-цитатами",
+          "Режим «Свой вопрос»: задать LLM любой вопрос по смеси",
+          "В демо: 7 партий QRA0R за 2026-09, средний DRY YIELD 88.9%, разброс 86.7–89.9"
+        ]
+      },
+      "settings": {
+        title: "⚙ Настройки",
+        text: "Блок выключен в навигации макета.",
+        points: [
+          "Конфигурация TPA: данные/подключение, PPL/Specification, LLM, параметры, база знаний/RAG, документы, интерфейс"
+        ]
+      }
+    };
+
+    const blockModal = document.getElementById("blockModal");
+    const blockModalTitle = document.getElementById("blockModalTitle");
+    const blockModalBody = document.getElementById("blockModalBody");
+    const blockCounter = document.getElementById("blockCounter");
+    const blockPointer = document.getElementById("blockPointer");
+    const blockBadge = document.getElementById("blockBadge");
+    const spotlight = {
+      top: document.getElementById("spotTop"),
+      bottom: document.getElementById("spotBottom"),
+      left: document.getElementById("spotLeft"),
+      right: document.getElementById("spotRight")
+    };
+    let modalTimer = 0;
+    let skipNextBlockModal = false;
+    let currentPseudoBlock = null;
+
+    function getCurrentTabId() {
+      return document.querySelector(".tab.active")?.dataset.tab || "tab-single";
+    }
+
+    function getCurrentBlockId() {
+      return currentPseudoBlock || getCurrentTabId();
+    }
+
+    const PSEUDO_BLOCKS = ["about", "tool", "settings"];
+
+    function setPseudoBlock(id) {
+      const pseudo = PSEUDO_BLOCKS.includes(id) ? id : null;
+      currentPseudoBlock = pseudo;
+      document.body.classList.toggle("block-pseudo-open", pseudo !== null);
+      document.body.classList.toggle("block-about-open", pseudo === "about");
+      document.body.classList.toggle("block-tool-open", pseudo === "tool");
+      document.body.classList.toggle("block-settings-open", pseudo === "settings");
+    }
+
+    function getHighlightTarget() {
+      if (currentPseudoBlock) return document.querySelector(".topbar");
+      return document.querySelector(".detail-panel") || document.querySelector(".tab-pane.active");
+    }
+
+    function refreshBlockModal(tabId) {
+      const current = tabId || getCurrentBlockId();
+      const info = blockInfo[current] || {
+        title: blockLabels[current] || current,
+        text: "Блок макета.",
+        points: ["В полном приложении здесь будут данные соответствующего экрана."]
+      };
+      blockModalTitle.textContent = info.title;
+      blockModalBody.innerHTML = "<p>" + info.text + "</p><ul class=\"modal-list\">" + info.points.map(p => "<li>[+] " + p + "</li>").join("") + "</ul>";
+      if (blockBadge) blockBadge.textContent = blockLabels[current] || info.title;
+      const idx = blockOrder.indexOf(current);
+      if (blockCounter) blockCounter.textContent = (idx >= 0 ? idx + 1 : "—") + " / " + blockOrder.length;
+      if (current === "tab-ai" && !aiDemoStarted && !aiDemoRunning) {
+        clearTimeout(aiDemoTimer);
+        aiDemoTimer = setTimeout(runAiDemo, 150);
+      }
+      if (current === "tab-blendai" && !blendDemoStarted && !blendDemoRunning) {
+        clearTimeout(blendDemoTimer);
+        blendDemoTimer = setTimeout(runBlendDemo, 150);
+      }
+      if (blockModal.classList.contains("open")) requestAnimationFrame(updateBlockHighlights);
+    }
+
+    function resetModalAlignment() {
+      const modalEl = blockModal.querySelector(".modal");
+      if (modalEl) modalEl.style.transform = "";
+    }
+
+    function updateSpotlight() {
+      if (!spotlight.top || !blockModal.classList.contains("open")) return;
+      const target = getHighlightTarget();
+      if (!target) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const r = target.getBoundingClientRect();
+      const pad = 12;
+      const x = Math.max(0, Math.min(vw, r.left - pad));
+      const y = Math.max(0, Math.min(vh, r.top - pad));
+      const x2 = Math.max(0, Math.min(vw, r.right + pad));
+      const y2 = Math.max(0, Math.min(vh, r.bottom + pad));
+      const w = Math.max(0, x2 - x);
+      const h = Math.max(0, y2 - y);
+      function place(el, left, top, width, height) {
+        if (!el) return;
+        el.style.left = left + "px";
+        el.style.top = top + "px";
+        el.style.width = width + "px";
+        el.style.height = height + "px";
+        el.style.display = width > 0 && height > 0 ? "block" : "none";
+      }
+      place(spotlight.top, 0, 0, vw, y);
+      place(spotlight.bottom, 0, y2, vw, Math.max(0, vh - y2));
+      place(spotlight.left, 0, y, x, h);
+      place(spotlight.right, x2, y, Math.max(0, vw - x2), h);
+    }
+
+    function updateBlockHighlights() {
+      resetModalAlignment();
+      updateBlockBadge();
+      updateSpotlight();
+    }
+
+    function updateBlockBadge() {
+      if (!blockBadge) return;
+      if (!blockModal.classList.contains("open")) {
+        blockBadge.style.display = "none";
+        return;
+      }
+      if (currentPseudoBlock) {
+        blockBadge.style.display = "none";
+        return;
+      }
+      const target = getHighlightTarget();
+      const modalEl = blockModal.querySelector(".modal");
+      if (!target || !modalEl) {
+        blockBadge.style.display = "none";
+        return;
+      }
+      blockBadge.style.display = "block";
+      const b = target.getBoundingClientRect();
+      const m = modalEl.getBoundingClientRect();
+      const bw = blockBadge.offsetWidth;
+      const bh = blockBadge.offsetHeight;
+      function overlapsModal(x, y) {
+        const ox = Math.max(0, Math.min(x + bw, m.right) - Math.max(x, m.left));
+        const oy = Math.max(0, Math.min(y + bh, m.bottom) - Math.max(y, m.top));
+        return ox * oy > (bw * bh) * 0.25;
+      }
+      function fits(x, y) {
+        return x >= 8 && y >= 8 && x + bw <= window.innerWidth - 8 && y + bh <= window.innerHeight - 8 && !overlapsModal(x, y);
+      }
+      const nearTop = b.top < 96;
+      const candidates = nearTop
+        ? [
+            { x: b.left + 12, y: b.bottom + 10 },
+            { x: b.right - bw - 12, y: b.bottom + 10 },
+            { x: b.left + 12, y: b.top + 12 },
+            { x: b.right - bw - 12, y: b.top + 12 },
+            { x: b.right - bw - 12, y: b.top - 30 },
+            { x: b.left + 12, y: b.top - 30 }
+          ]
+        : [
+            { x: b.right - bw - 12, y: b.top - 30 },
+            { x: b.left + 12, y: b.top - 30 },
+            { x: b.left + 12, y: b.top + 12 },
+            { x: b.right - bw - 12, y: b.top + 12 },
+            { x: b.left + 12, y: b.bottom + 10 },
+            { x: b.right - bw - 12, y: b.bottom + 10 }
+          ];
+      let placed = false;
+      for (const c of candidates) {
+        if (fits(c.x, c.y)) {
+          blockBadge.style.left = c.x + "px";
+          blockBadge.style.top = c.y + "px";
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) blockBadge.style.display = "none";
+    }
+
+    function updateBlockPointer() {
+      const svg = blockPointer;
+      if (!svg) return;
+      if (!blockModal.classList.contains("open")) {
+        svg.innerHTML = "";
+        return;
+      }
+      const modalEl = blockModal.querySelector(".modal");
+      const tab = document.querySelector(".tab.active");
+      const block = document.querySelector(".detail-panel") || document.querySelector(".tab-pane.active");
+      if (!modalEl || (!tab && !block)) {
+        svg.innerHTML = "";
+        return;
+      }
+      const m = modalEl.getBoundingClientRect();
+      const mcx = m.left + m.width / 2;
+      function clamp(v, min, max) {
+        if (min > max) return (min + max) / 2;
+        return Math.max(min, Math.min(max, v));
+      }
+      function draw(x1, y1, x2, y2) {
+        if (Math.abs(y2 - y1) < 14 && Math.abs(x2 - x1) < 14) {
+          svg.innerHTML = "";
+          return;
+        }
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+        const angle = Math.atan2(y2 - y1, x2 - x1);
+        const ah = 10;
+        const aw = 6;
+        const lx = x2 - ah * Math.cos(angle);
+        const ly = y2 - ah * Math.sin(angle);
+        const p1x = lx + aw * Math.sin(angle);
+        const p1y = ly - aw * Math.cos(angle);
+        const p2x = lx - aw * Math.sin(angle);
+        const p2y = ly + aw * Math.cos(angle);
+        svg.innerHTML = `<line x1="${x1}" y1="${y1}" x2="${lx}" y2="${ly}" stroke="#007aff" stroke-width="2"></line><path d="M ${x2} ${y2} L ${p1x} ${p1y} L ${p2x} ${p2y} Z" fill="#007aff"></path>`;
+      }
+      if (tab) {
+        const t = tab.getBoundingClientRect();
+        const tcx = t.left + t.width / 2;
+        const tcy = t.top + t.height / 2;
+        if (t.bottom > m.bottom + 10) {
+          const x2 = clamp(tcx, t.left + 6, t.right - 6);
+          draw(clamp(x2, m.left + 24, m.right - 24), m.bottom, x2, Math.max(m.bottom + 18, t.top + 8));
+          return;
+        }
+        if (t.top < m.top - 10) {
+          const x2 = clamp(tcx, t.left + 6, t.right - 6);
+          draw(clamp(x2, m.left + 24, m.right - 24), m.top, x2, Math.min(m.top - 18, t.bottom - 8));
+          return;
+        }
+        if (t.left > m.right + 10) {
+          const y2 = clamp(tcy, m.top + 28, m.bottom - 28);
+          draw(m.right, y2, Math.max(t.left - 8, m.right + 16), y2);
+          return;
+        }
+        if (t.right < m.left - 10) {
+          const y2 = clamp(tcy, m.top + 28, m.bottom - 28);
+          draw(m.left, y2, Math.min(t.right + 8, m.left - 16), y2);
+          return;
+        }
+      }
+      if (block) {
+        const b = block.getBoundingClientRect();
+        if (b.bottom > m.bottom + 10) {
+          const x2 = clamp(mcx, b.left + 24, b.right - 24);
+          draw(clamp(x2, m.left + 24, m.right - 24), m.bottom, x2, Math.max(m.bottom + 18, b.top + 24));
+          return;
+        }
+        if (b.top < m.top - 10) {
+          const x2 = clamp(mcx, b.left + 24, b.right - 24);
+          draw(clamp(x2, m.left + 24, m.right - 24), m.top, x2, Math.min(m.top - 18, b.bottom - 24));
+          return;
+        }
+        if (b.left > m.right + 10) {
+          const y2 = clamp(b.top + b.height / 2, m.top + 28, m.bottom - 28);
+          draw(m.right, y2, Math.max(b.left - 8, m.right + 16), y2);
+          return;
+        }
+        if (b.right < m.left - 10) {
+          const y2 = clamp(b.top + b.height / 2, m.top + 28, m.bottom - 28);
+          draw(m.left, y2, Math.min(b.right + 8, m.left - 16), y2);
+          return;
+        }
+      }
+      svg.innerHTML = "";
+    }
+
+    function openBlockModal() {
+      refreshBlockModal();
+      document.body.classList.add("block-modal-open");
+      blockModal.classList.add("open");
+      blockModal.setAttribute("aria-hidden", "false");
+      requestAnimationFrame(updateBlockHighlights);
+    }
+
+    function closeBlockModal() {
+      clearTimeout(modalTimer);
+      document.body.classList.remove("block-modal-open");
+      blockModal.classList.remove("open");
+      blockModal.setAttribute("aria-hidden", "true");
+      if (blockPointer) blockPointer.innerHTML = "";
+      if (blockBadge) blockBadge.style.display = "none";
+      const modalEl = blockModal.querySelector(".modal");
+      if (modalEl) modalEl.style.transform = "";
+      setPseudoBlock(null);
+      setBlockLabel(getCurrentTabId());
+      if (getCurrentTabId() === "tab-ai" && !aiDemoStarted && !aiDemoRunning) {
+        aiDemoTimer = setTimeout(runAiDemo, 350);
+      }
+    }
+
+    function scheduleBlockModal(ms) {
+      clearTimeout(modalTimer);
+      modalTimer = setTimeout(openBlockModal, ms);
+    }
+
+    function goToBlock(id) {
+      if (PSEUDO_BLOCKS.includes(id)) {
+        setPseudoBlock(id);
+        setBlockLabel(id);
+        window.scrollTo(0, 0);
+        if (blockModal.classList.contains("open")) {
+          refreshBlockModal(id);
+          requestAnimationFrame(updateBlockHighlights);
+        } else if (!skipNextBlockModal) {
+          scheduleBlockModal(420);
+        }
+        return;
+      }
+      setPseudoBlock(null);
+      setBlockLabel(id);
+      showTab(id);
+      if (!blockModal.classList.contains("open") && !skipNextBlockModal) scheduleBlockModal(420);
+    }
+
+    function goBlock(offset) {
+      const current = getCurrentBlockId();
+      const i = blockOrder.indexOf(current);
+      if (i === -1) {
+        goToBlock(blockOrder[0]);
+        return;
+      }
+      const next = blockOrder[(i + offset + blockOrder.length) % blockOrder.length];
+      if (next === current) return;
+      goToBlock(next);
+      if (blockModal.classList.contains("open")) {
+        refreshBlockModal(next);
+        requestAnimationFrame(updateBlockHighlights);
+      }
+    }
+
+    window.addEventListener("resize", () => {
+      if (blockModal.classList.contains("open")) updateBlockHighlights();
+    });
+    window.addEventListener("scroll", () => {
+      if (blockModal.classList.contains("open")) updateBlockHighlights();
+    }, { passive: true });
+
+    document.getElementById("btnBlockInfo").addEventListener("click", openBlockModal);
+    document.getElementById("btnBlockModalClose").addEventListener("click", closeBlockModal);
+    document.getElementById("btnBlockPrev").addEventListener("click", () => goBlock(-1));
+    document.getElementById("btnBlockNext").addEventListener("click", () => goBlock(1));
+    const btnSettingsTop = document.getElementById("btnSettingsTop");
+    if (btnSettingsTop) btnSettingsTop.title = "Блок «Настройки» выключен в навигации макета";
+    const btnAboutTop = document.getElementById("btnAboutTop");
+    if (btnAboutTop) btnAboutTop.addEventListener("click", () => {
+      setPseudoBlock("about");
+      setBlockLabel("about");
+      openBlockModal();
+    });
+    blockIndicator.addEventListener("click", openBlockModal);
+    blockModal.addEventListener("click", e => { if (e.target === blockModal) closeBlockModal(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") closeBlockModal(); });
+
+    const aiChatMessages = document.querySelector("#tab-ai .chat-messages");
+    const aiDemoStatus = document.getElementById("aiDemoStatus");
+    const aiDemoRunBtn = document.getElementById("btnAiDemoRun");
+    const aiDemoResetBtn = document.getElementById("btnAiDemoReset");
+    const aiFinalHTML = document.querySelector("#tab-ai .chat-msg.ai-demo-final")?.outerHTML || "";
+    let aiDemoTimer = 0;
+    let aiDemoRunning = false;
+    let aiDemoStarted = false;
+
+    function mdInline(s) {
+      return s
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    }
+
+    function mdToHtml(md) {
+      const lines = md.replace(/\r\n/g, "\n").split("\n");
+      const out = [];
+      let i = 0;
+      const isSep = (r) => /^[\s|:-]+$/.test(r);
+      while (i < lines.length) {
+        let l = lines[i].replace(/\\\*/g, "*");
+        if (!l.trim()) { i++; continue; }
+        if (/^\s*```/.test(l)) {
+          i++;
+          const code = [];
+          while (i < lines.length && !/^\s*```/.test(lines[i])) { code.push(lines[i]); i++; }
+          i++;
+          out.push("<pre>" + mdInline(code.join("\n")) + "</pre>");
+          continue;
+        }
+        const h = l.match(/^(#{1,6})\s+(.*)$/);
+        if (h) {
+          const lv = Math.min(h[1].length + 2, 5);
+          out.push("<h" + lv + ">" + mdInline(h[2]) + "</h" + lv + ">");
+          i++;
+          continue;
+        }
+        if (/^\s*-{3,}\s*$/.test(l)) { out.push("<hr>"); i++; continue; }
+        if (/^\s*\|/.test(l)) {
+          const rows = [];
+          while (i < lines.length && /^\s*\|/.test(lines[i])) { rows.push(lines[i].trim()); i++; }
+          const cells = (r) => r.replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+          let t = '<div class="ftd-tbl"><table><thead><tr>';
+          cells(rows[0]).forEach((c) => { t += "<th>" + mdInline(c) + "</th>"; });
+          t += "</tr></thead><tbody>";
+          for (let r = 1; r < rows.length; r++) {
+            if (isSep(rows[r])) continue;
+            t += "<tr>";
+            cells(rows[r]).forEach((c) => { t += "<td>" + mdInline(c) + "</td>"; });
+            t += "</tr>";
+          }
+          t += "</tbody></table></div>";
+          out.push(t);
+          continue;
+        }
+        if (/^\s*>/.test(l)) {
+          const q = [];
+          while (i < lines.length && /^\s*>/.test(lines[i])) { q.push(lines[i].replace(/^\s*>\s?/, "")); i++; }
+          out.push("<blockquote>" + q.map(mdInline).join("<br>") + "</blockquote>");
+          continue;
+        }
+        if (/^\s*-\s+/.test(l)) {
+          const items = [];
+          while (i < lines.length && /^\s*-\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*-\s+/, "")); i++; }
+          out.push("<ul>" + items.map((x) => "<li>" + mdInline(x) + "</li>").join("") + "</ul>");
+          continue;
+        }
+        if (/^\s*\d+[.)]\s+/.test(l)) {
+          const items = [];
+          while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) { items.push(lines[i].replace(/^\s*\d+[.)]\s+/, "")); i++; }
+          out.push("<ol>" + items.map((x) => "<li>" + mdInline(x) + "</li>").join("") + "</ol>");
+          continue;
+        }
+        let p = l.trim();
+        if (/^\*(?!\*)/.test(p) && !p.endsWith("*")) {
+          out.push("<p><em>" + mdInline(p.replace(/^\*\s?/, "")) + "</em></p>");
+        } else {
+          out.push("<p>" + mdInline(p) + "</p>");
+        }
+        i++;
+      }
+      return out.join("\n");
+    }
+
+    const aiDemoSteps = [
+      {
+        cls: "chat-msg system",
+        html: "Контекст: DATA 9 842 chars (truncated: no) · RAG: 0 цитат · 0 уроков по QRA0R · DRY YIELD: демо (ODC недоступен)",
+        status: "Контекст: DATA + RAG + уроки",
+        delay: 700
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 1 · DRY YIELD</div>Демо-значения: 1100903: 86.7%, 1200902: 89.6%. Реальный DRY YIELD сейчас недоступен из-за ODC.',
+        status: "Обсуждение: шаг 1/4 — DRY YIELD (демо)",
+        delay: 950
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 2 · Параметры</div>AB Feeder GQ1: 1 064.201 → 220.5803 (−79.3%).<br>AB Feeder 829: 0 → 743.7; AB Feeder GQ3/833: из значения в ноль.',
+        status: "Обсуждение: шаг 2/4 — отклонения AB Feeder / WB",
+        delay: 1100
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 3 · Проверка уроков QRA0R</div>В макете показано место для подтверждённых уроков QRA0R и RAG-цитат; live-поиск не выполняется.',
+        status: "Обсуждение: шаг 3/4 — уроки/RAG",
+        delay: 950
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 4 · Гипотеза</div>Основной кандидат: сильный разброс AB Feeder / AddBack weights + ручные корректировки Master-WB в 1200902.',
+        status: "Обсуждение: шаг 4/4 — гипотеза",
+        delay: 950
+      },
+      {
+        finalize: true,
+        status: "Результат сформирован; далее — вопросы эксперта",
+        delay: 1200
+      },
+      {
+        role: "user",
+        html: "необходимо провести анализ по всем партия по параметры потока табака на входе в FTD, необходимо сравнить поблендно и определить поему по каким то партиям поток низкий, а по каким то поток высокий. Даже в рамках одного бленда потоки отличаются",
+        status: "Эксперт: вопрос — поток табака на входе FTD",
+        delay: 1200
+      },
+      {
+        role: "ai-md",
+        src: "ftdAi1",
+        status: "AI: поблендовый анализ потока (ответ 1/3)",
+        delay: 2200
+      },
+      {
+        role: "user",
+        html: "посмотри какие факторы еще есть влияющие на поток на входе в FTD",
+        status: "Эксперт: ещё факторы, влияющие на поток",
+        delay: 1200
+      },
+      {
+        role: "ai-md",
+        src: "ftdAi2",
+        status: "AI: факторы потока на входе FTD (ответ 2/3)",
+        delay: 2200
+      },
+      {
+        role: "user",
+        html: "какие параметры повлияли на скорость потока на входе в FTD разных партиях, напиши анализ",
+        status: "Эксперт: параметры скорости потока",
+        delay: 1200
+      },
+      {
+        role: "ai-md",
+        src: "ftdAi3",
+        status: "AI: полный анализ факторов (ответ 3/3)",
+        delay: 2200
+      }
+    ];
+
+    function setAiStatus(text, state) {
+      if (!aiDemoStatus) return;
+      aiDemoStatus.textContent = "[AI DEMO] " + text;
+      aiDemoStatus.classList.remove("running", "done");
+      if (state) aiDemoStatus.classList.add(state);
+    }
+
+    function appendAiMessage(cls, html) {
+      const div = document.createElement("div");
+      div.className = cls;
+      div.innerHTML = html;
+      aiChatMessages.appendChild(div);
+      aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+      return div;
+    }
+
+    function resetAiDemo() {
+      clearTimeout(aiDemoTimer);
+      aiDemoRunning = false;
+      aiChatMessages.innerHTML = '<div class="chat-msg user">⚡ AI анализ партий 1100903 и 1200902</div><div class="chat-msg system">Имитация не запущена. Нажмите «▶ Имитация обсуждения».</div>';
+      setAiStatus("Готов к имитации: обсуждение → результат");
+    }
+
+    function appendFinalResult() {
+      if (aiFinalHTML) {
+        const wrap = document.createElement("div");
+        wrap.innerHTML = aiFinalHTML.trim();
+        const finalEl = wrap.firstElementChild;
+        if (finalEl) {
+          finalEl.classList.remove("hidden", "ai-demo-final");
+          aiChatMessages.appendChild(finalEl);
+          aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+      }
+    }
+
+    function runAiDemo() {
+      if (aiDemoRunning) return;
+      resetAiDemo();
+      aiDemoRunning = true;
+      aiDemoStarted = true;
+      setAiStatus("Имитация запускается…", "running");
+      let i = 0;
+      function nextStep() {
+        if (i >= aiDemoSteps.length) {
+          aiDemoTimer = setTimeout(finishAiDemo, 800);
+          return;
+        }
+        const step = aiDemoSteps[i++];
+        appendAiMessage(step.cls, step.html);
+        setAiStatus(step.status, "running");
+        aiDemoTimer = setTimeout(nextStep, step.delay);
+      }
+      nextStep();
+    }
+
+    function forceStartAiDemo() {
+      clearTimeout(aiDemoTimer);
+      aiDemoStarted = true;
+      aiDemoRunning = false;
+      runAiDemo();
+    }
+
+    function scheduleAiDemoRestart(ms) {
+      clearTimeout(aiDemoTimer);
+      aiDemoStarted = true;
+      aiDemoTimer = setTimeout(() => {
+        if (getCurrentTabId() !== "tab-ai") return;
+        aiDemoRunning = false;
+        runAiDemo();
+      }, ms || 150);
+    }
+
+    aiDemoRunBtn.addEventListener("click", () => {
+      aiDemoStarted = true;
+      runAiDemo();
+    });
+    aiDemoResetBtn.addEventListener("click", () => {
+      aiDemoStarted = false;
+      resetAiDemo();
+    });
+
+    document.getElementById("btnAiDemoTop").addEventListener("click", () => {
+      skipNextBlockModal = true;
+      showTab("tab-ai");
+      skipNextBlockModal = false;
+      if (blockModal.classList.contains("open")) closeBlockModal();
+      if (getCurrentTabId() === "tab-ai") forceStartAiDemo();
+    });
+
+    const blendChatMessages = document.querySelector("#tab-blendai .chat-messages");
+    const blendDemoStatus = document.getElementById("blendDemoStatus");
+    const blendDemoRunBtn = document.getElementById("btnBlendDemoRun");
+    const blendDemoResetBtn = document.getElementById("btnBlendDemoReset");
+    const blendFinalHTML = document.querySelector("#tab-blendai .chat-msg.blend-demo-final")?.outerHTML || "";
+    let blendDemoTimer = 0;
+    let blendDemoRunning = false;
+    let blendDemoStarted = false;
+
+    const blendDemoSteps = [
+      {
+        cls: "chat-msg system",
+        html: "Контекст: blend QRA0R, 7 партий 2026-09 · DATA 7 431 chars (truncated: no) · RAG: 0 цитат · 0 уроков · DRY YIELD: демо (ODC недоступен)",
+        status: "Контекст: blend DATA + PPL + RAG",
+        delay: 700
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 1 · KPI смеси</div>7 партий, всего 77 626 kg. Средний демо DRY YIELD: 88.9%; разброс 86.7–89.9 п.п.',
+        status: "Обсуждение: шаг 1/4 — KPI blend",
+        delay: 950
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 2 · Аутляеры</div>Минимум: 1100903 — 86.7 (AB Feeder / AddBack + ручные WB). Максимум: 1300905 — 89.9. Отдельно: 1130911 на QRA0R V.20.',
+        status: "Обсуждение: шаг 2/4 — аутляеры",
+        delay: 1050
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 3 · PPL и уроки</div>Batch Size 10 000 kg — в цели. Уроки QRA0R и RAG-цитаты в макете не запрашиваются, показано место для вывода.',
+        status: "Обсуждение: шаг 3/4 — PPL/RAG",
+        delay: 950
+      },
+      {
+        cls: "chat-msg assistant step",
+        html: '<div class="step-title">Шаг 4 · Гипотеза</div>Системного drift по blend не видно. Локальная причина разброса — 1100903: AB Feeder / AddBack weights и ручные корректировки WB.',
+        status: "Обсуждение: шаг 4/4 — гипотеза",
+        delay: 950
+      }
+    ];
+
+    function setBlendStatus(text, state) {
+      if (!blendDemoStatus) return;
+      blendDemoStatus.textContent = "[BLEND AI DEMO] " + text;
+      blendDemoStatus.classList.remove("running", "done");
+      if (state) blendDemoStatus.classList.add(state);
+    }
+
+    function appendBlendMessage(cls, html) {
+      const div = document.createElement("div");
+      div.className = cls;
+      div.innerHTML = html;
+      blendChatMessages.appendChild(div);
+      blendChatMessages.scrollTop = blendChatMessages.scrollHeight;
+      return div;
+    }
+
+    function resetBlendDemo() {
+      clearTimeout(blendDemoTimer);
+      blendDemoRunning = false;
+      blendChatMessages.innerHTML = '<div class="chat-msg user">⚡ AI анализ смеси QRA0R — 7 партий 2026-09</div><div class="chat-msg system">Имитация не запущена. Нажмите «▶ Имитация обсуждения».</div>';
+      setBlendStatus("Готов к имитации: blend 7 партий → результат");
+    }
+
+    function finishBlendDemo() {
+      if (blendFinalHTML) {
+        const wrap = document.createElement("div");
+        wrap.innerHTML = blendFinalHTML.trim();
+        const finalEl = wrap.firstElementChild;
+        if (finalEl) {
+          finalEl.classList.remove("hidden", "blend-demo-final");
+          blendChatMessages.appendChild(finalEl);
+        }
+      }
+      setBlendStatus("Готово: blend-результат сформирован", "done");
+      blendDemoRunning = false;
+      blendChatMessages.scrollTop = blendChatMessages.scrollHeight;
+    }
+
+    function runBlendDemo() {
+      if (blendDemoRunning) return;
+      resetBlendDemo();
+      blendDemoRunning = true;
+      blendDemoStarted = true;
+      setBlendStatus("Имитация запускается…", "running");
+      let i = 0;
+      function nextStep() {
+        if (i >= blendDemoSteps.length) {
+          blendDemoTimer = setTimeout(finishBlendDemo, 800);
+          return;
+        }
+        const step = blendDemoSteps[i++];
+        appendBlendMessage(step.cls, step.html);
+        setBlendStatus(step.status, "running");
+        blendDemoTimer = setTimeout(nextStep, step.delay);
+      }
+      nextStep();
+    }
+
+    function forceStartBlendDemo() {
+      clearTimeout(blendDemoTimer);
+      blendDemoStarted = true;
+      blendDemoRunning = false;
+      runBlendDemo();
+    }
+
+    function scheduleBlendDemoRestart(ms) {
+      clearTimeout(blendDemoTimer);
+      blendDemoStarted = true;
+      blendDemoTimer = setTimeout(() => {
+        if (getCurrentTabId() !== "tab-blendai") return;
+        blendDemoRunning = false;
+        runBlendDemo();
+      }, ms || 150);
+    }
+
+    blendDemoRunBtn.addEventListener("click", () => {
+      blendDemoStarted = true;
+      runBlendDemo();
+    });
+    blendDemoResetBtn.addEventListener("click", () => {
+      blendDemoStarted = false;
+      resetBlendDemo();
+    });
+
+    const paramDemoData = {
+      dry: {
+        name: "DRY YIELD",
+        unit: "%",
+        target: "—",
+        kpi: [
+          { label: "Параметр", value: "DRY YIELD", sub: "7 партий QRA0R" },
+          { label: "Среднее", value: "88.9 %", sub: "2026-09" },
+          { label: "Минимум", value: "86.7 %", sub: "1100903" },
+          { label: "Максимум", value: "89.9 %", sub: "1300905" }
+        ],
+        rows: [
+          { id: "1010905", date: "2026-09-01", recipe: "QRA0R V.19", value: "88.4", status: '<span class="flag-b ok">норма</span>' },
+          { id: "1040903", date: "2026-09-04", recipe: "QRA0R V.19", value: "89.1", status: '<span class="flag-b ok">норма</span>' },
+          { id: "1100903", date: "2026-09-11", recipe: "QRA0R V.19", value: "86.7", status: '<span class="flag-b warn">минимум</span>' },
+          { id: "1130911", date: "2026-09-13", recipe: "QRA0R V.20", value: "88.9", status: '<span class="flag-b ok">норма</span>' },
+          { id: "1170903", date: "2026-09-17", recipe: "QRA0R V.19", value: "89.4", status: '<span class="flag-b ok">норма</span>' },
+          { id: "1200902", date: "2026-09-20", recipe: "QRA0R V.19", value: "89.6", status: '<span class="flag-b ok">норма</span>' },
+          { id: "1300905", date: "2026-09-30", recipe: "QRA0R V.19", value: "89.9", status: '<span class="flag-b ok">максимум</span>' }
+        ]
+      },
+      batch: {
+        name: "Batch Size",
+        unit: "kg",
+        target: "10 000 🎯",
+        kpi: [
+          { label: "Параметр", value: "Batch Size", sub: "PPL #3" },
+          { label: "Среднее", value: "10 000 kg", sub: "7 партий" },
+          { label: "Минимум", value: "10 000 kg", sub: "все партии" },
+          { label: "Максимум", value: "10 000 kg", sub: "все партии" }
+        ],
+        rows: [
+          { id: "1010905", date: "2026-09-01", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1040903", date: "2026-09-04", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1100903", date: "2026-09-11", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1130911", date: "2026-09-13", recipe: "QRA0R V.20", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1170903", date: "2026-09-17", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1200902", date: "2026-09-20", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' },
+          { id: "1300905", date: "2026-09-30", recipe: "QRA0R V.19", value: "10 000", status: '<span class="flag-b ok">🎯 в цели</span>' }
+        ]
+      },
+      finalwb: {
+        name: "Final-WB-Dry-Real",
+        unit: "kg",
+        target: "—",
+        kpi: [
+          { label: "Параметр", value: "Final-WB", sub: "✏️ ручная корректировка" },
+          { label: "Среднее", value: "9 548.4 kg", sub: "2 партии со значением" },
+          { label: "Минимум", value: "9 529.785", sub: "1200902" },
+          { label: "Максимум", value: "9 567.09", sub: "1100903" }
+        ],
+        rows: [
+          { id: "1010905", date: "2026-09-01", recipe: "QRA0R V.19", value: "N/A", cls: "cell-na", status: '<span class="flag-b mute">отсутствует</span>' },
+          { id: "1040903", date: "2026-09-04", recipe: "QRA0R V.19", value: "N/A", cls: "cell-na", status: '<span class="flag-b mute">отсутствует</span>' },
+          { id: "1100903", date: "2026-09-11", recipe: "QRA0R V.19", value: "9 567.09", status: '<span class="flag-b ok">максимум</span>' },
+          { id: "1130911", date: "2026-09-13", recipe: "QRA0R V.20", value: "N/A", cls: "cell-na", status: '<span class="flag-b mute">отсутствует</span>' },
+          { id: "1170903", date: "2026-09-17", recipe: "QRA0R V.19", value: "N/A", cls: "cell-na", status: '<span class="flag-b mute">отсутствует</span>' },
+          { id: "1200902", date: "2026-09-20", recipe: "QRA0R V.19", value: "9 529.785", status: '<span class="flag-b ok">минимум</span>' },
+          { id: "1300905", date: "2026-09-30", recipe: "QRA0R V.19", value: "N/A", cls: "cell-na", status: '<span class="flag-b mute">отсутствует</span>' }
+        ]
+      }
+    };
+    function renderParamMatrix(key) {
+      const d = paramDemoData[key];
+      if (!d) return;
+      document.querySelector("#paramValueHead").textContent = d.name + (d.unit ? " (" + d.unit + ")" : "");
+      document.querySelector("#paramKpi").innerHTML = d.kpi.map(k => `<div class="kpi-card"><div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-sub">${k.sub}</div></div>`).join("");
+      document.querySelector("#paramMatrixBody").innerHTML = d.rows.map(r => `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.recipe}</td><td class="num ${r.cls || ""}">${r.value}</td><td>${d.target}</td><td>${r.status}</td></tr>`).join("");
+    }
+    const paramSelect = document.querySelector("#paramSelect");
+    if (paramSelect) {
+      paramSelect.addEventListener("change", e => renderParamMatrix(e.target.value));
+      renderParamMatrix("dry");
+    }
+    const STAG_SEL = ".detail-header, .compare-toolbar, .search-wrap, tbody tr, .kpi-card, .tl-card, .chat-msg, .ai-section, .ai-actions, .ai-mode-group, .ai-questions, .ai-params-head, .ai-params-toolbar, .ai-params-body, .chat-input-wrap";
+    function stagger(scope) {
+      scope.querySelectorAll(STAG_SEL).forEach((el, i) => {
+        el.classList.remove("st-on");
+        el.style.setProperty("--d", Math.min(80 + i * 35, 640) + "ms");
+        void el.offsetWidth;
+        el.classList.add("st-on");
+      });
+    }
+
+    function setActiveTab(tabId) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === tabId));
+      document.querySelectorAll(".tab-pane").forEach(p => p.classList.remove("active", "anim-in"));
+      const pane = document.getElementById(tabId);
+      pane.classList.add("active");
+      setBlockLabel(tabId);
+      return pane;
+    }
+
+    function showTab(tabId) {
+      setPseudoBlock(null);
+      setBlockLabel(tabId);
+      const current = document.querySelector(".tab.active")?.dataset.tab;
+      if (current === tabId) return;
+      const pane = setActiveTab(tabId);
+      layout.style.height = layout.offsetHeight + "px";
+      layout.classList.add("height-anim");
+      const h1 = layout.scrollHeight;
+      requestAnimationFrame(() => { layout.style.height = h1 + "px"; });
+      void pane.offsetWidth;
+      pane.classList.add("anim-in");
+      stagger(pane);
+      setTimeout(() => {
+        layout.style.height = "";
+        layout.classList.remove("height-anim");
+        pane.classList.remove("anim-in");
+        if (blockModal.classList.contains("open")) updateBlockHighlights();
+      }, 380);
+      window.scrollTo(0, 0);
+      if (tabId === "tab-ai") scheduleAiDemoRestart(150);
+      if (tabId === "tab-blendai") scheduleBlendDemoRestart(150);
+      if (!blockModal.classList.contains("open") && !skipNextBlockModal) scheduleBlockModal(420);
+    }
+
+    document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => showTab(t.dataset.tab)));
+    document.addEventListener("keydown", e => {
+      if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+      if (blockModal && blockModal.classList.contains("open")) {
+        if (e.key === "ArrowRight") goBlock(1);
+        if (e.key === "ArrowLeft") goBlock(-1);
+        return;
+      }
+      if (e.key === "ArrowRight") goBlock(1);
+      if (e.key === "ArrowLeft") goBlock(-1);
+    });
+    document.querySelector('#btn-ai-params-toggle').classList.add('active');
+    setPseudoBlock("about");
+    setBlockLabel("about");
+    stagger(document.getElementById("tab-single"));
+    scheduleBlockModal(450);
+  </script>
+</body>
+</html>
